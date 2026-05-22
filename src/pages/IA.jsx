@@ -12,6 +12,9 @@ import {
   where,
   orderBy,
   onSnapshot,
+  doc,
+  getDoc,
+  setDoc
 } from "firebase/firestore";
 
 function IA() {
@@ -23,13 +26,17 @@ function IA() {
     async function carregarSessao() {
       const user = auth.currentUser;
       if (!user) return;
-      const ref = doc(db, "sessoesIA", user.uid);
-      const snap = await getDoc(ref);
-      if (snap.exists()) {
-        const dados = snap.data();
-        if (dados.historico && dados.historico.length > 0) {
-          setMensagens(dados.historico);
+      try {
+        const ref = doc(db, "sessoesIA", user.uid);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          const dados = snap.data();
+          if (dados.historico && dados.historico.length > 0) {
+            setMensagens(dados.historico);
+          }
         }
+      } catch (e) {
+        console.error("Erro ao carregar sessao:", e);
       }
     }
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -42,7 +49,7 @@ function IA() {
     {
       autor: "ia",
       texto:
-        "Olá! Sou a Mentinha, assistente emocional do CheckMente. Como você está se sentindo hoje?",
+        "OlÃ¡! Sou a Mentinha, assistente emocional do CheckMente. Como vocÃª estÃ¡ se sentindo hoje?",
     },
   ]);
 
@@ -58,9 +65,9 @@ function IA() {
     );
 
     const pararDeOuvir = onSnapshot(consulta, (snapshot) => {
-      const conversas = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
+      const conversas = snapshot.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
       }));
 
       setHistoricoConversas(conversas);
@@ -95,32 +102,37 @@ function IA() {
 
       setMensagens((old) => [...old, respostaDaIA]);
 
-      await addDoc(collection(db, "conversasIA"), {
-        userId: auth.currentUser?.uid || null,
-        mensagemUsuario: novaMensagem.texto,
-        respostaIA: respostaIA.resposta,
-        titulo: gerarTitulo(novaMensagem.texto),
-        resumo: respostaIA.resposta.slice(0, 80),
-        criadoEm: serverTimestamp(),
-      });
-
-      const user = auth.currentUser;
-      if (user) {
-        await setDoc(doc(db, "sessoesIA", user.uid), {
-          historico: [...historico, respostaDaIA],
-          ultimaInteracao: serverTimestamp(),
-          userId: user.uid,
+      // Isolating Firebase so it doesn't break the UI
+      try {
+        await addDoc(collection(db, "conversasIA"), {
+          userId: auth.currentUser?.uid || null,
+          mensagemUsuario: novaMensagem.texto,
+          respostaIA: respostaIA.resposta,
+          titulo: gerarTitulo(novaMensagem.texto),
+          resumo: respostaIA.resposta.slice(0, 80),
+          criadoEm: serverTimestamp(),
         });
+
+        const user = auth.currentUser;
+        if (user) {
+          await setDoc(doc(db, "sessoesIA", user.uid), {
+            historico: [...historico, respostaDaIA],
+            ultimaInteracao: serverTimestamp(),
+            userId: user.uid,
+          });
+        }
+      } catch (firebaseError) {
+        console.error("Erro ao salvar no Firebase:", firebaseError);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
 
       setMensagens((old) => [
         ...old,
         {
           autor: "ia",
           texto:
-            "Desculpe, não consegui responder agora. Tente novamente em alguns segundos.",
+            "Erro da Kimi: " + (error.message || "NÃ£o foi possÃ­vel conectar com a IA."),
         },
       ]);
     } finally {
@@ -169,7 +181,7 @@ function IA() {
               {carregando && (
                 <div className="flex justify-start">
                   <div className="bg-white border border-slate-200 px-6 py-4 rounded-3xl text-slate-500 text-base">
-                    Mentinha está digitando...
+                    Mentinha estÃ¡ digitando...
                   </div>
                 </div>
               )}
@@ -182,7 +194,7 @@ function IA() {
               <div className="flex items-center gap-3">
                 <input
                   type="text"
-                  placeholder="Escreva como você se sente..."
+                  placeholder="Escreva como vocÃª se sente..."
                   value={mensagem}
                   onChange={(e) => setMensagem(e.target.value)}
                   className="flex-1 h-14 rounded-2xl border border-slate-200 bg-white px-5 text-base outline-none focus:border-blue-500"
@@ -203,7 +215,7 @@ function IA() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-2xl font-semibold text-slate-800">
-                  Histórico
+                  HistÃ³rico
                 </h2>
 
                 <p className="text-sm text-slate-500 mt-1">
