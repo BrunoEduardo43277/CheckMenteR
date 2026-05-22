@@ -19,6 +19,25 @@ function IA() {
   const [historicoConversas, setHistoricoConversas] = useState([]);
   const [carregando, setCarregando] = useState(false);
 
+  useEffect(() => {
+    async function carregarSessao() {
+      const user = auth.currentUser;
+      if (!user) return;
+      const ref = doc(db, "sessoesIA", user.uid);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        const dados = snap.data();
+        if (dados.historico && dados.historico.length > 0) {
+          setMensagens(dados.historico);
+        }
+      }
+    }
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) carregarSessao();
+    });
+    return () => unsubscribe();
+  }, []);
+
   const [mensagens, setMensagens] = useState([
     {
       autor: "ia",
@@ -84,6 +103,15 @@ function IA() {
         resumo: respostaIA.resposta.slice(0, 80),
         criadoEm: serverTimestamp(),
       });
+
+      const user = auth.currentUser;
+      if (user) {
+        await setDoc(doc(db, "sessoesIA", user.uid), {
+          historico: historicoAtualizado,
+          ultimaInteracao: serverTimestamp(),
+          userId: user.uid,
+        });
+      }
     } catch (error) {
       console.log(error);
 
