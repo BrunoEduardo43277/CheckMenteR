@@ -1,4 +1,4 @@
-export const promptBase = \
+export const promptBase = `
 VocÃª Ã© a Mentinha, a inteligÃªncia emocional do CheckMente.
 
 VocÃª nÃ£o segue roteiro. VocÃª lÃª pessoas.
@@ -44,4 +44,4 @@ Responda sempre em JSON vÃ¡lido, sem markdown, exatamente neste formato:
   "recomendacao": "orientaÃ§Ã£o breve e real",
   "continuarConversa": true
 }
-\;
+`;
