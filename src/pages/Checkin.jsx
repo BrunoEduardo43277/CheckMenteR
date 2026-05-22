@@ -1,6 +1,8 @@
 import { useState } from "react";
 import AppLayout from "../layouts/AppLayout";
 import { Heart, Send } from "lucide-react";
+import { auth, db } from "../services/firebase";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 function Checkin() {
   const [emocao, setEmocao] = useState("");
@@ -19,11 +21,36 @@ function Checkin() {
     { nome: "Cansado", imagem: "/emocoes/8.png" },
   ];
 
-  function registrarCheckin() {
-    alert(
-      `Check-in registrado!\n\nEmoção: ${emocao}\nIntensidade: ${intensidade}/5\nContexto: ${contexto || "Não informado"
-      }\nMensagem: ${mensagem || "Não informado"}`
-    );
+  const [carregando, setCarregando] = useState(false);
+
+  async function registrarCheckin() {
+    const user = auth.currentUser;
+    if (!user) {
+      alert("Você precisa estar logado para fazer check-in.");
+      return;
+    }
+
+    setCarregando(true);
+    try {
+      await addDoc(collection(db, "checkins"), {
+        userId: user.uid,
+        emocao,
+        intensidade,
+        contexto: contexto || "Não informado",
+        mensagem: mensagem || "Não informado",
+        criadoEm: serverTimestamp(),
+      });
+      alert("Check-in registrado com sucesso!");
+      setEmocao("");
+      setIntensidade(0);
+      setContexto("");
+      setMensagem("");
+    } catch (error) {
+      console.error("Erro ao registrar checkin", error);
+      alert("Erro ao registrar check-in.");
+    } finally {
+      setCarregando(false);
+    }
   }
 
   return (
@@ -150,9 +177,10 @@ function Checkin() {
         {intensidade > 0 && (
           <button
             onClick={registrarCheckin}
-            className="w-full py-5 rounded-2xl bg-gradient-to-r from-[#5ED6A7] to-[#38B487] text-white font-medium text-base flex items-center justify-center gap-3 shadow-lg hover:opacity-95 transition"
+            disabled={carregando}
+            className="w-full py-5 rounded-2xl bg-gradient-to-r from-[#5ED6A7] to-[#38B487] text-white font-medium text-base flex items-center justify-center gap-3 shadow-lg hover:opacity-95 transition disabled:opacity-60"
           >
-            Registrar Check-in
+            {carregando ? "Registrando..." : "Registrar Check-in"}
             <Send size={20} />
           </button>
         )}
