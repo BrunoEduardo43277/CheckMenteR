@@ -14,7 +14,9 @@ import {
   onSnapshot,
   doc,
   getDoc,
-  setDoc
+  setDoc,
+  limit,
+  getDocs
 } from "firebase/firestore";
 
 function IA() {
@@ -22,40 +24,69 @@ function IA() {
   const [historicoConversas, setHistoricoConversas] = useState([]);
   const [carregando, setCarregando] = useState(false);
 
+  const [nomeAluno, setNomeAluno] = useState("");
+  const [ultimoCheckin, setUltimoCheckin] = useState(null);
+  const [contextoOculto, setContextoOculto] = useState([]);
+  
+  const [mensagens, setMensagens] = useState([]);
+
   useEffect(() => {
-    async function carregarSessao() {
+    async function carregarDadosIniciais() {
       const user = auth.currentUser;
       if (!user) return;
+
       try {
-        const ref = doc(db, "sessoesIA", user.uid);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          const dados = snap.data();
-          if (dados.historico && dados.historico.length > 0) {
-            setMensagens(dados.historico);
-          }
+        // 1. Buscar Nome do Aluno
+        const userRef = doc(db, "usuarios", user.uid);
+        const userSnap = await getDoc(userRef);
+        let nome = "Aluno";
+        if (userSnap.exists() && userSnap.data().nome) {
+          nome = userSnap.data().nome.split(" ")[0]; // Pegar só o primeiro nome
         }
+        setNomeAluno(nome);
+
+        // 2. Buscar último check-in
+        const checkinsQuery = query(
+          collection(db, "checkins"),
+          where("userId", "==", user.uid),
+          orderBy("criadoEm", "desc"),
+          limit(1)
+        );
+        const checkinsSnap = await getDocs(checkinsQuery);
+        if (!checkinsSnap.empty) {
+          setUltimoCheckin(checkinsSnap.docs[0].data());
+        }
+
+        // 3. Carregar Sessão Oculta
+        const sessaoRef = doc(db, "sessoesIA", user.uid);
+        const sessaoSnap = await getDoc(sessaoRef);
+        if (sessaoSnap.exists() && sessaoSnap.data().historico) {
+          setContextoOculto(sessaoSnap.data().historico);
+        }
+
+        // Inicializar a mensagem de saudação limpa na tela
+        setMensagens([
+          {
+            autor: "ia",
+            texto: `Olá, ${nome}! Sou a Mentinha, assistente emocional do CheckMente. Como você está se sentindo hoje?`,
+          },
+        ]);
       } catch (e) {
-        console.error("Erro ao carregar sessao:", e);
+        console.error("Erro ao carregar dados iniciais:", e);
+        setMensagens([
+          { autor: "ia", texto: "Olá! Sou a Mentinha. Como posso te ajudar hoje?" }
+        ]);
       }
     }
+
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) carregarSessao();
+      if (user) carregarDadosIniciais();
     });
     return () => unsubscribe();
   }, []);
 
-  const [mensagens, setMensagens] = useState([
-    {
-      autor: "ia",
-      texto:
-        "OlÃ¡! Sou a Mentinha, assistente emocional do CheckMente. Como vocÃª estÃ¡ se sentindo hoje?",
-    },
-  ]);
-
   useEffect(() => {
     const usuario = auth.currentUser;
-
     if (!usuario) return;
 
     const consulta = query(
@@ -86,14 +117,16 @@ function IA() {
       texto: mensagem,
     };
 
-    const historico = [...mensagens, novaMensagem];
-
-    setMensagens(historico);
+    const mensagensTela = [...mensagens, novaMensagem];
+    setMensagens(mensagensTela);
     setMensagem("");
     setCarregando(true);
 
     try {
-      const respostaIA = await gerarRespostaIA(historico);
+      // Combina o contexto oculto do passado com as mensagens ativas na tela
+      const historicoCompleto = [...contextoOculto, ...mensagensTela];
+
+      const respostaIA = await gerarRespostaIA(historicoCompleto, nomeAluno, ultimoCheckin);
 
       const respostaDaIA = {
         autor: "ia",
@@ -102,7 +135,9 @@ function IA() {
 
       setMensagens((old) => [...old, respostaDaIA]);
 
-      // Isolating Firebase so it doesn't break the UI
+      const novoHistoricoParaSalvar = [...historicoCompleto, respostaDaIA];
+      setContextoOculto(novoHistoricoParaSalvar);
+
       try {
         await addDoc(collection(db, "conversasIA"), {
           userId: auth.currentUser?.uid || null,
@@ -116,23 +151,35 @@ function IA() {
         const user = auth.currentUser;
         if (user) {
           await setDoc(doc(db, "sessoesIA", user.uid), {
-            historico: [...historico, respostaDaIA],
+            historico: novoHistoricoParaSalvar,
             ultimaInteracao: serverTimestamp(),
             userId: user.uid,
           });
+
+          // Gerar Alerta Preventivo Real
+          if (respostaIA.riscoEmocional && respostaIA.riscoEmocional.toLowerCase() === "alto") {
+            await addDoc(collection(db, "alertas"), {
+              aluno: nomeAluno || "Aluno",
+              iniciais: nomeAluno ? nomeAluno.substring(0, 2).toUpperCase() : "AL",
+              turma: "Não identificada", // Pode buscar a turma real se tiver no usuário
+              descricao: `A IA detectou um risco emocional ALTO. A emoção detectada foi: ${respostaIA.emocaoDetectada}. Recomendação da IA: ${respostaIA.recomendacao}`,
+              nivel: "Alto",
+              status: "Pendente",
+              criadoEm: serverTimestamp()
+            });
+          }
         }
       } catch (firebaseError) {
         console.error("Erro ao salvar no Firebase:", firebaseError);
       }
     } catch (error) {
       console.error(error);
-
       setMensagens((old) => [
         ...old,
         {
           autor: "ia",
           texto:
-            "Erro da Kimi: " + (error.message || "NÃ£o foi possÃ­vel conectar com a IA."),
+            "Erro da Kimi: " + (error.message || "Não foi possível conectar com a IA."),
         },
       ]);
     } finally {
@@ -181,7 +228,7 @@ function IA() {
               {carregando && (
                 <div className="flex justify-start">
                   <div className="bg-white border border-slate-200 px-6 py-4 rounded-3xl text-slate-500 text-base">
-                    Mentinha estÃ¡ digitando...
+                    Mentinha está digitando...
                   </div>
                 </div>
               )}
@@ -194,7 +241,7 @@ function IA() {
               <div className="flex items-center gap-3">
                 <input
                   type="text"
-                  placeholder="Escreva como vocÃª se sente..."
+                  placeholder="Escreva como você se sente..."
                   value={mensagem}
                   onChange={(e) => setMensagem(e.target.value)}
                   className="flex-1 h-14 rounded-2xl border border-slate-200 bg-white px-5 text-base outline-none focus:border-blue-500"
@@ -215,15 +262,13 @@ function IA() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-2xl font-semibold text-slate-800">
-                  HistÃ³rico
+                  Histórico
                 </h2>
 
                 <p className="text-sm text-slate-500 mt-1">
                   Conversas recentes
                 </p>
               </div>
-
-
             </div>
 
             <div className="space-y-3 overflow-y-auto max-h-[540px] pr-1">
