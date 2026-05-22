@@ -91,7 +91,7 @@ function Configuracoes() {
     <AppLayout>
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center gap-5 mb-10">
-          <div className="w-16 h-16 rounded-3xl bg-blue-50 text-blue-600 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-3xl bg-blue-50 text-green-600 flex items-center justify-center">
             <Settings size={34} />
           </div>
 
@@ -156,7 +156,7 @@ function Configuracoes() {
           <div className="lg:col-span-2 flex justify-end">
             <button
               disabled={salvando}
-              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold flex items-center gap-3 shadow-lg disabled:opacity-60"
+              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#5ED6A7] to-[#38B487] text-white font-bold flex items-center gap-3 shadow-lg disabled:opacity-60"
             >
               <Save size={20} />
               {salvando ? "Salvando..." : "Salvar Configurações"}

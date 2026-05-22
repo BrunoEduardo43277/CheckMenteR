@@ -1,4 +1,5 @@
 import AppLayout from "../layouts/AppLayout";
+import { Link } from "react-router-dom";
 
 import {
   Leaf,
@@ -10,19 +11,23 @@ import {
 } from "lucide-react";
 
 function Dashboard() {
+
+  const imageUrl = "/public/logoCheck.png";
+
   return (
     <AppLayout>
-      <div className="max-w-6xl mx-auto px-2">
+
+      <div className="w-full max-w-[1600px] mx-auto px-6">
 
         {/* TOPO */}
         <section className="mb-10">
 
           <h1 className="text-4xl font-semibold tracking-tight text-slate-800">
-            Olá, Bruno!
+            Olá, aluno
           </h1>
 
           <p className="text-slate-500 mt-3 text-base">
-            Que bom te ver por aqui!
+            Que bom te ver por aqui.
           </p>
 
           <p className="text-slate-500 text-base">
@@ -31,212 +36,213 @@ function Dashboard() {
 
         </section>
 
-<section className="relative overflow-hidden rounded-[32px] p-8 md:p-10 mb-12 bg-gradient-to-r from-blue-50 via-violet-50 to-blue-100 border border-white/60 shadow-[0_10px_40px_rgba(99,102,241,0.10)]">
+        {/* BANNER */}
+        <section className="relative overflow-hidden rounded-[36px] p-8 md:p-12 mb-14 bg-gradient-to-r from-[#EAFBF3] via-[#F3FFFA] to-[#E4F8EF] border border-[#DDEFE7] shadow-sm">
 
-  {/* EFEITOS DE FUNDO */}
-  <div className="absolute top-0 left-0 w-72 h-72 bg-blue-300/20 blur-3xl rounded-full" />
+          <div className="absolute top-0 left-0 w-96 h-96 bg-[#5ED6A7]/20 blur-[120px] rounded-full" />
 
-  <div className="absolute bottom-0 right-0 w-72 h-72 bg-violet-300/20 blur-3xl rounded-full" />
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#38B487]/20 blur-[120px] rounded-full" />
 
-  <div className="relative grid md:grid-cols-2 gap-8 items-center">
+          <div className="relative z-10 grid lg:grid-cols-2 gap-10 items-center">
 
-    <div className="animate-[fadeIn_1s_ease]">
+            <div>
 
-      <div className="text-6xl text-blue-500 mb-4 animate-pulse">
-        “
-      </div>
+              <div className="text-7xl text-[#38B487] leading-none mb-3">
+                “
+              </div>
 
-      <h2 className="text-3xl md:text-4xl font-semibold leading-tight text-slate-800">
-        Pequenos passos todos os dias podem levar a grandes mudanças.
-      </h2>
+              <h2 className="text-4xl md:text-5xl font-bold leading-tight text-slate-900 tracking-tight">
+                Pequenos passos todos os dias podem levar a grandes mudanças.
+              </h2>
 
-      <p className="flex items-center gap-2 text-slate-500 mt-6 text-base">
+              <p className="flex items-center gap-3 text-slate-600 mt-8 text-lg">
 
-        <Heart
-          size={18}
-          className="text-blue-500"
-        />
+                <Heart
+                  size={22}
+                  className="text-[#38B487] fill-[#38B487]"
+                />
 
-        Cuide de você, sempre.
+                <span>
+                  Cuide de você, sempre.
+                </span>
 
-      </p>
+              </p>
 
-    </div>
+            </div>
 
-    <div className="hidden md:flex justify-center">
+            <div className="hidden lg:flex justify-center">
 
-      <div className="relative animate-[float_4s_ease-in-out_infinite]">
+              <div className="relative">
 
-        <div className="absolute inset-0 bg-blue-400/20 blur-2xl rounded-full" />
+                <div className="absolute -inset-5 bg-[#5ED6A7]/20 blur-3xl rounded-full" />
 
-        <div className="relative text-[130px]">
-          🪴
-        </div>
+                <div className="relative w-[420px] h-[420px] rounded-full overflow-hidden border-4 border-white shadow-2xl">
 
-      </div>
+                  <img
+                    src={imageUrl}
+                    alt="Trilha"
+                    className="w-full h-full object-cover"
+                  />
 
-    </div>
+                </div>
 
-  </div>
+              </div>
 
-</section>
+            </div>
+
+          </div>
+
+        </section>
 
         {/* AÇÕES */}
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-6">
 
-          <h2 className="text-2xl font-semibold text-slate-800">
+          <h2 className="text-3xl font-semibold text-slate-800">
             Ações rápidas
           </h2>
 
-          <button className="text-blue-600 font-medium text-sm">
-            Ver todas
-          </button>
 
         </div>
 
-        <section className="grid grid-cols-2 md:grid-cols-5 gap-5 mb-14">
+        <section className="grid grid-cols-2 lg:grid-cols-5 gap-6 mb-16">
 
-          <Acao
-            icon={<Leaf size={28} />}
-            titulo="Respirar"
-            subtitulo="Exercício rápido"
-            cor="green"
-          />
+          <Link to="/respirador">
 
-          <Acao
-            icon={<Moon size={28} />}
-            titulo="Dormir melhor"
-            subtitulo="Sons e meditações"
-            cor="violet"
-          />
+            <Acao
+              icon={<Leaf size={30} />}
+              titulo="Respirar"
+              subtitulo="Exercício rápido"
+              cor="green"
+              
+            />
 
-          <Acao
-            icon={<Target size={28} />}
-            titulo="Focar"
-            subtitulo="Concentre-se"
-            cor="blue"
-          />
+          </Link>
 
-          <Acao
-            icon={<Heart size={28} />}
-            titulo="Me acalmar"
-            subtitulo="Alivie a ansiedade"
-            cor="pink"
-          />
+          <Link to="/dormir">
 
-          <Acao
-            icon={<BookOpen size={28} />}
-            titulo="Diário"
-            subtitulo="Escreva o que sente"
-            cor="orange"
-          />
+            <Acao
+              icon={<Moon size={30} />}
+              titulo="Dormir melhor"
+              subtitulo="Sons e meditações"
+              cor="violet"
+            />
+
+          </Link>
+
+          <Link to="/focar">
+
+            <Acao
+              icon={<Target size={30} />}
+              titulo="Focar"
+              subtitulo="Concentre-se"
+              cor="blue"
+            />
+
+          </Link>
+
+          <Link to="/acalmar">
+
+            <Acao
+              icon={<Heart size={30} />}
+              titulo="Me acalmar"
+              subtitulo="Alivie a ansiedade"
+              cor="pink"
+            />
+
+          </Link>
+
+          <Link to="/diario">
+
+            <Acao
+              icon={<BookOpen size={30} />}
+              titulo="Diário"
+              subtitulo="Escreva o que sente"
+              cor="orange"
+            />
+
+          </Link>
 
         </section>
 
         {/* RECOMENDADOS */}
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-6">
 
-          <h2 className="text-2xl font-semibold text-slate-800">
+          <h2 className="text-3xl font-semibold text-slate-800">
             Recomendado para você
           </h2>
 
-          <button className="text-blue-600 font-medium text-sm">
-            Ver todas
-          </button>
-
         </div>
 
-        <section className="grid md:grid-cols-3 gap-6">
+        <section className="grid lg:grid-cols-3 gap-7">
 
           <Recomendado
             titulo="Respiração para acalmar a mente"
             categoria="Exercício"
             tempo="5 min"
-            fundo="from-green-200 to-cyan-200"
+            fundo="from-[#DDF8EA] to-[#B8F0D1]"
           />
 
           <Recomendado
-            titulo="Meditação para uma boa noite de sono"
+            titulo="Meditação para dormir melhor"
             categoria="Sono"
             tempo="8 min"
-            fundo="from-blue-500 to-violet-600"
+            fundo="from-[#5ED6A7] to-[#38B487]"
           />
 
           <Recomendado
-            titulo="Como lidar com a ansiedade na escola"
+            titulo="Como lidar com ansiedade escolar"
             categoria="Conteúdo"
             tempo="6 min"
-            fundo="from-green-100 to-lime-100"
+            fundo="from-[#ECFFF5] to-[#D9F8E7]"
           />
 
         </section>
 
       </div>
+
     </AppLayout>
   );
 }
 
-function Acao({
-  icon,
-  titulo,
-  subtitulo,
-  cor,
-}) {
+function Acao({ icon, titulo, subtitulo, cor }) {
 
   const cores = {
-    green: "bg-green-50 text-green-500",
-    violet: "bg-violet-50 text-violet-500",
-    blue: "bg-blue-50 text-blue-500",
-    pink: "bg-pink-50 text-pink-500",
-    orange: "bg-orange-50 text-orange-500",
+    green: "bg-[#E5F7EE] text-[#2FA36B]",
+    violet: "bg-[#EEF2FF] text-[#6D5DF6]",
+    blue: "bg-[#EAF6FF] text-[#3693FF]",
+    pink: "bg-[#FFF0F5] text-[#F45AA0]",
+    orange: "bg-[#FFF5EB] text-[#FF9B3F]",
   };
 
   return (
-    <div className="bg-white rounded-[28px] border border-slate-100 p-6 text-center hover:shadow-md transition-all duration-300">
+    <button className="w-full bg-white rounded-[30px] border border-[#E8F3ED] p-7 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
 
-      <div
-        className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 ${cores[cor]}`}
-      >
+      <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 ${cores[cor]}`}>
         {icon}
       </div>
 
-      <h3 className="font-semibold text-slate-800 text-lg">
+      <h3 className="font-semibold text-slate-800 text-xl">
         {titulo}
       </h3>
 
-      <p className="text-slate-500 text-sm mt-1">
+      <p className="text-slate-500 text-sm mt-2">
         {subtitulo}
       </p>
 
-    </div>
+    </button>
   );
 }
 
-function Recomendado({
-  emoji,
-  titulo,
-  categoria,
-  tempo,
-  fundo,
-}) {
+function Recomendado({ titulo, categoria, tempo, fundo }) {
 
   return (
-    <div className="bg-white rounded-[28px] overflow-hidden border border-slate-100 hover:shadow-md transition-all duration-300">
+    <div className="bg-white rounded-[30px] overflow-hidden border border-[#E8F3ED] hover:shadow-lg transition-all duration-300">
 
-      <div
-        className={`h-52 bg-gradient-to-br ${fundo} relative p-6`}
-      >
+      <div className={`h-56 bg-gradient-to-br ${fundo} relative p-6`}>
 
-        <div className="text-7xl">
-          {emoji}
-        </div>
+        <div className="absolute bottom-5 left-5 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2 text-sm font-medium text-slate-700 shadow-sm">
 
-        <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-2 text-sm font-medium text-slate-700">
-
-          <Play
-            size={14}
-            fill="currentColor"
-          />
+          <Play size={14} fill="currentColor" />
 
           {tempo}
 
@@ -244,9 +250,9 @@ function Recomendado({
 
       </div>
 
-      <div className="p-5">
+      <div className="p-6">
 
-        <h3 className="text-xl font-semibold leading-snug text-slate-800">
+        <h3 className="text-2xl font-semibold leading-snug text-slate-800">
           {titulo}
         </h3>
 

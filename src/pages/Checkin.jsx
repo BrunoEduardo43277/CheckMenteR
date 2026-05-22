@@ -9,20 +9,19 @@ function Checkin() {
   const [mensagem, setMensagem] = useState("");
 
   const emocoes = [
-    { nome: "Muito Feliz", emoji: "😁" },
-    { nome: "Feliz", emoji: "😊" },
-    { nome: "Neutro", emoji: "😐" },
-    { nome: "Triste", emoji: "😔" },
-    { nome: "Muito Triste", emoji: "😢" },
-    { nome: "Ansioso", emoji: "😰" },
-    { nome: "Irritado", emoji: "😤" },
-    { nome: "Cansado", emoji: "😴" },
+    { nome: "Muito Feliz", imagem: "/emocoes/1.png" },
+    { nome: "Feliz", imagem: "/emocoes/2.png" },
+    { nome: "Neutro", imagem: "/emocoes/3.png" },
+    { nome: "Triste", imagem: "/emocoes/4.png" },
+    { nome: "Muito Triste", imagem: "/emocoes/5.png" },
+    { nome: "Ansioso", imagem: "/emocoes/6.png" },
+    { nome: "Irritado", imagem: "/emocoes/7.png" },
+    { nome: "Cansado", imagem: "/emocoes/8.png" },
   ];
 
   function registrarCheckin() {
     alert(
-      `Check-in registrado!\n\nEmoção: ${emocao}\nIntensidade: ${intensidade}/5\nContexto: ${
-        contexto || "Não informado"
+      `Check-in registrado!\n\nEmoção: ${emocao}\nIntensidade: ${intensidade}/5\nContexto: ${contexto || "Não informado"
       }\nMensagem: ${mensagem || "Não informado"}`
     );
   }
@@ -42,7 +41,7 @@ function Checkin() {
 
         <section className="bg-white rounded-[28px] border border-slate-200 shadow-sm p-8 mb-8">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-2xl bg-green-50 text-white-5000 flex items-center justify-center">
               <Heart size={24} />
             </div>
 
@@ -61,13 +60,16 @@ function Checkin() {
                   setContexto("");
                   setMensagem("");
                 }}
-                className={`rounded-[24px] p-6 border transition-all duration-300 hover:shadow-md ${
-                  emocao === item.nome
+                className={`rounded-[24px] p-6 border transition-all duration-300 hover:shadow-md ${emocao === item.nome
                     ? "border-blue-200 bg-blue-50"
                     : "border-slate-100 hover:bg-slate-50"
-                }`}
+                  }`}
               >
-                <div className="text-5xl mb-4">{item.emoji}</div>
+                <img
+                  src={item.imagem}
+                  alt={item.nome}
+                  className="w-16 h-16 mx-auto mb-4 object-contain"
+                />
 
                 <p className="font-medium text-slate-700 text-base">
                   {item.nome}
@@ -92,11 +94,10 @@ function Checkin() {
                     setContexto("");
                     setMensagem("");
                   }}
-                  className={`py-4 rounded-2xl font-medium text-base transition-all duration-300 ${
-                    intensidade >= numero
-                      ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-md"
+                  className={`py-4 rounded-2xl font-medium text-base transition-all duration-300 ${intensidade >= numero
+                      ? "bg-gradient-to-r from-[#5ED6A7] to-[#38B487] text-white shadow-md"
                       : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                  }`}
+                    }`}
                 >
                   {numero}
                 </button>
@@ -149,7 +150,7 @@ function Checkin() {
         {intensidade > 0 && (
           <button
             onClick={registrarCheckin}
-            className="w-full py-5 rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-medium text-base flex items-center justify-center gap-3 shadow-lg hover:opacity-95 transition"
+            className="w-full py-5 rounded-2xl bg-gradient-to-r from-[#5ED6A7] to-[#38B487] text-white font-medium text-base flex items-center justify-center gap-3 shadow-lg hover:opacity-95 transition"
           >
             Registrar Check-in
             <Send size={20} />

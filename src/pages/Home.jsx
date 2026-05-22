@@ -85,7 +85,7 @@ function Home() {
                 <span className="p-4">😄</span>
                 <span className="p-4">😐</span>
                 <span className="p-4">😔</span>
-                <span className="p-4">😰</span>
+                <span imagem="p-4">😰</span>
               </div>
 
               <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
