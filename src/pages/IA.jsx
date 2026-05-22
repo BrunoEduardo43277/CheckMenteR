@@ -107,7 +107,7 @@ function IA() {
       const user = auth.currentUser;
       if (user) {
         await setDoc(doc(db, "sessoesIA", user.uid), {
-          historico: historicoAtualizado,
+          historico: [...historico, respostaDaIA],
           ultimaInteracao: serverTimestamp(),
           userId: user.uid,
         });
