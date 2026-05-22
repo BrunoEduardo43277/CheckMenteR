@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AppLayout from "../layouts/AppLayout";
-import { Sparkles, Send, Brain, AlertCircle, Lightbulb } from "lucide-react";
+import { Sparkles, Send } from "lucide-react";
 import { gerarRespostaIA } from "../services/mentinha";
 
 import { auth, db } from "../services/firebase";
@@ -8,20 +8,47 @@ import {
   addDoc,
   collection,
   serverTimestamp,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
 } from "firebase/firestore";
 
 function IA() {
   const [mensagem, setMensagem] = useState("");
+  const [historicoConversas, setHistoricoConversas] = useState([]);
+  const [carregando, setCarregando] = useState(false);
+
   const [mensagens, setMensagens] = useState([
     {
       autor: "ia",
       texto:
-        "Olá! 💙 Sou a Mentinha, assistente emocional do CheckMente. Como você está se sentindo hoje?",
+        "Olá! Sou a Mentinha, assistente emocional do CheckMente. Como você está se sentindo hoje?",
     },
   ]);
 
-  const [analise, setAnalise] = useState(null);
-  const [carregando, setCarregando] = useState(false);
+  useEffect(() => {
+    const usuario = auth.currentUser;
+
+    if (!usuario) return;
+
+    const consulta = query(
+      collection(db, "conversasIA"),
+      where("userId", "==", usuario.uid),
+      orderBy("criadoEm", "desc")
+    );
+
+    const pararDeOuvir = onSnapshot(consulta, (snapshot) => {
+      const conversas = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setHistoricoConversas(conversas);
+    });
+
+    return () => pararDeOuvir();
+  }, []);
 
   async function enviarMensagem(e) {
     e.preventDefault();
@@ -42,30 +69,19 @@ function IA() {
     try {
       const respostaIA = await gerarRespostaIA(historico);
 
-      setMensagens((old) => [
-        ...old,
-        {
-          autor: "ia",
-          texto: respostaIA.resposta,
-        },
-      ]);
-
-      const novaAnalise = {
-        emocao: respostaIA.emocaoDetectada || "Em análise",
-        nivel: respostaIA.nivelAtencao || "Em avaliação",
-        recomendacao:
-          respostaIA.recomendacao || "Continuar acompanhamento emocional.",
+      const respostaDaIA = {
+        autor: "ia",
+        texto: respostaIA.resposta,
       };
 
-      setAnalise(novaAnalise);
+      setMensagens((old) => [...old, respostaDaIA]);
 
       await addDoc(collection(db, "conversasIA"), {
         userId: auth.currentUser?.uid || null,
         mensagemUsuario: novaMensagem.texto,
         respostaIA: respostaIA.resposta,
-        emocaoDetectada: novaAnalise.emocao,
-        nivelAtencao: novaAnalise.nivel,
-        recomendacao: novaAnalise.recomendacao,
+        titulo: gerarTitulo(novaMensagem.texto),
+        resumo: respostaIA.resposta.slice(0, 80),
         criadoEm: serverTimestamp(),
       });
     } catch (error) {
@@ -88,7 +104,7 @@ function IA() {
     <AppLayout>
       <div className="max-w-6xl mx-auto min-h-[85vh] flex flex-col">
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-white">
+          <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-[#5ED6A7] to-[#38B487] flex items-center justify-center text-white shadow-md">
             <Sparkles size={30} />
           </div>
 
@@ -98,7 +114,7 @@ function IA() {
             </h1>
 
             <p className="text-slate-500 text-base">
-              Converse com a Mentinha 💙
+              Converse com a Mentinha 
             </p>
           </div>
         </div>
@@ -109,16 +125,13 @@ function IA() {
               {mensagens.map((msg, index) => (
                 <div
                   key={index}
-                  className={`flex ${
-                    msg.autor === "usuario" ? "justify-end" : "justify-start"
-                  }`}
+                  className={`flex ${msg.autor === "usuario" ? "justify-end" : "justify-start"
+                    }`}
                 >
                   <div
-                    className={`max-w-3xl px-6 py-4 rounded-3xl shadow-sm text-base leading-relaxed ${
-                      msg.autor === "usuario"
-                        ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-br-md"
-                        : "bg-white border border-slate-200 text-slate-800 rounded-bl-md"
-                    }`}
+                    className={`max-w-3xl px-6 py-4 rounded-3xl shadow-sm text-base leading-relaxed ${msg.autor === "usuario"
+                      ? "bg-gradient-to-r from-[#5ED6A7] to-[#38B487] text-white rounded-br-md" : "bg-white border border-slate-200 text-slate-800 rounded-bl-md"
+                      }`}
                   >
                     {msg.texto}
                   </div>
@@ -150,7 +163,7 @@ function IA() {
                 <button
                   type="submit"
                   disabled={carregando}
-                  className="h-14 w-14 rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-white flex items-center justify-center shadow-lg disabled:opacity-60"
+                  className="h-14 w-14 rounded-2xl bg-gradient-to-r from-[#5ED6A7] to-[#38B487] text-white flex items-center justify-center shadow-lg disabled:opacity-60"
                 >
                   <Send size={22} />
                 </button>
@@ -158,36 +171,37 @@ function IA() {
             </form>
           </section>
 
-          <aside className="space-y-5">
-            <AnaliseCard
-              icon={<Brain size={24} />}
-              title="Emoção detectada"
-              value={analise?.emocao || "Aguardando conversa"}
-              color="text-blue-600"
-            />
+          <aside className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm h-full">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-semibold text-slate-800">
+                  Histórico
+                </h2>
 
-            <AnaliseCard
-              icon={<AlertCircle size={24} />}
-              title="Nível de atenção"
-              value={analise?.nivel || "Não avaliado"}
-              color="text-violet-600"
-            />
-
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center">
-                  <Lightbulb size={24} />
-                </div>
-
-                <h3 className="font-semibold text-base text-slate-800">
-                  Recomendação interna
-                </h3>
+                <p className="text-sm text-slate-500 mt-1">
+                  Conversas recentes
+                </p>
               </div>
 
-              <p className="text-slate-500 text-sm leading-relaxed">
-                {analise?.recomendacao ||
-                  "A recomendação será gerada após a resposta do estudante."}
-              </p>
+
+            </div>
+
+            <div className="space-y-3 overflow-y-auto max-h-[540px] pr-1">
+              {historicoConversas.length === 0 ? (
+                <p className="text-sm text-slate-500">
+                  Nenhuma conversa salva ainda.
+                </p>
+              ) : (
+                historicoConversas.map((conversa, index) => (
+                  <ConversaItem
+                    key={conversa.id}
+                    titulo={conversa.titulo || "Conversa com a Mentinha"}
+                    resumo={conversa.mensagemUsuario}
+                    horario={formatarData(conversa.criadoEm)}
+                    ativo={index === 0}
+                  />
+                ))
+              )}
             </div>
           </aside>
         </div>
@@ -196,22 +210,41 @@ function IA() {
   );
 }
 
-function AnaliseCard({ icon, title, value, color }) {
+function ConversaItem({ titulo, resumo, horario, ativo }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-      <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
-        {icon}
+    <button
+      className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 ${ativo
+        ? "bg-violet-50 border-violet-200"
+        : "bg-white border-slate-100 hover:bg-slate-50"
+        }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="font-semibold text-slate-800 text-sm">{titulo}</h3>
+
+          <p className="text-sm text-slate-500 mt-1 line-clamp-2">
+            {resumo}
+          </p>
+        </div>
+
+        <span className="text-xs text-slate-400 whitespace-nowrap">
+          {horario}
+        </span>
       </div>
-
-      <p className="text-slate-500 text-sm mb-2">
-        {title}
-      </p>
-
-      <h2 className={`text-xl font-semibold tracking-tight ${color}`}>
-        {value}
-      </h2>
-    </div>
+    </button>
   );
+}
+
+function gerarTitulo(texto) {
+  if (texto.length <= 28) return texto;
+  return texto.slice(0, 28) + "...";
+}
+
+function formatarData(dataFirebase) {
+  if (!dataFirebase) return "Agora";
+
+  const data = dataFirebase.toDate();
+  return data.toLocaleDateString("pt-BR");
 }
 
 export default IA;
