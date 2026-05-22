@@ -13,6 +13,8 @@ import AppLayout from "./layouts/AppLayout.jsx";
 import Configuracoes from "./pages/Configuracoes.jsx";
 import Alunos from "./pages/Alunos.jsx";
 import Mensagens from "./pages/mensagen.jsx";
+import Respirador from "./pages/acaoDashboard/respirador.jsx";
+import RespiracaoT1 from "./pages/acaoDashboard/tiposRespiracao/respiracaoT1.jsx";
 
 function App() {
   return (
@@ -30,9 +32,13 @@ function App() {
         <Route path="/configuracoes" element={<Configuracoes />} />
         <Route path="/alunos" element={<Alunos />} />
         <Route path="/mensagens" element={<Mensagens />} />
+        <Route path="/respirador" element={<Respirador />} />
+        <Route path="/respiracaoT1" element={<RespiracaoT1 />} />
       </Routes>
     </div>
   );
 }
+
+
 
 export default App;
