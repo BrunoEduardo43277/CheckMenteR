@@ -57,7 +57,7 @@ Apenas o campo "resposta" será exibido ao usuário.
   });
 
   if (!resposta.ok) {
-    throw new Error("Erro ao conectar com a IA.");
+    throw new Error(`Erro na API: ${resposta.status} ${resposta.statusText}`);
   }
 
   const dados = await resposta.json();
