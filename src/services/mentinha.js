@@ -1,4 +1,4 @@
-import { promptBase } from "./promptBase";
+import { construirPrompt } from "./promptBase";
 
 const API_KEY = import.meta.env.VITE_KIMI_API_KEY;
 
@@ -20,7 +20,7 @@ function extrairJSON(texto) {
   }
 }
 
-export async function gerarRespostaIA(historico) {
+export async function gerarRespostaIA(historico, nomeAluno = "Aluno", ultimoCheckin = null) {
   const mensagensFormatadas = historico.map((msg) => ({
     role: msg.autor === "usuario" ? "user" : "assistant",
     content: msg.texto,
@@ -38,7 +38,7 @@ export async function gerarRespostaIA(historico) {
         {
           role: "system",
           content: `
-${promptBase}
+${construirPrompt(nomeAluno, ultimoCheckin)}
 
 Responda SEMPRE em JSON válido, sem markdown, exatamente assim:
 {
@@ -72,6 +72,7 @@ Apenas o campo "resposta" será exibido ao usuário.
     resposta: resultado.resposta,
     emocaoDetectada: resultado.emocaoDetectada,
     nivelAtencao: resultado.nivelAtencao,
+    riscoEmocional: resultado.riscoEmocional,
     recomendacao: resultado.recomendacao,
   };
 }
