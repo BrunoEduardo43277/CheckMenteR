@@ -288,7 +288,7 @@ function Perfil() {
               </div>
 
               <div className="md:col-span-2 flex justify-end">
-                <button className="px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-medium flex items-center gap-2 shadow-lg hover:opacity-95 transition">
+                <button className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#5ED6A7] to-[#38B487] text-white font-medium flex items-center gap-2 shadow-lg hover:opacity-95 transition">
                   <Save size={20} />
                   Salvar alterações
                 </button>
