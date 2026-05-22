@@ -33,30 +33,40 @@ function AppLayout({ children }) {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-950">
-      <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-72 bg-slate-950 text-slate-300 flex-col border-r border-slate-800">
+    <div className="min-h-screen bg-[#F8FCFA]">
+      
+      {/* SIDEBAR DESKTOP */}
+      <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-72 bg-[#F2FBF7] text-[#2E7D6B] flex-col border-r border-[#DDEFE7]">
         <SidebarContent links={links} location={location} />
       </aside>
 
-      <header className="lg:hidden sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200 px-5 py-4 flex items-center justify-between">
+      {/* HEADER MOBILE */}
+      <header className="lg:hidden sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-[#DDEFE7] px-5 py-4 flex items-center justify-between">
         <Logo />
-        <button onClick={() => setMenuAberto(true)} className="text-slate-900">
+
+        <button
+          onClick={() => setMenuAberto(true)}
+          className="text-[#1F3D35]"
+        >
           <Menu size={30} />
         </button>
       </header>
 
+      {/* MENU MOBILE */}
       {menuAberto && (
         <div className="fixed inset-0 z-50 lg:hidden">
+
           <div
             onClick={() => setMenuAberto(false)}
             className="absolute inset-0 bg-black/40"
           />
 
-          <aside className="relative h-full w-[78%] max-w-sm bg-slate-950 text-slate-300 shadow-2xl">
+          <aside className="relative h-full w-[78%] max-w-sm bg-[#F2FBF7] text-[#2E7D6B] shadow-2xl">
+
             <div className="absolute right-[-52px] top-5">
               <button
                 onClick={() => setMenuAberto(false)}
-                className="w-11 h-11 rounded-full bg-white flex items-center justify-center text-slate-900 shadow"
+                className="w-11 h-11 rounded-full bg-white flex items-center justify-center text-[#1F3D35] shadow"
               >
                 <X size={25} />
               </button>
@@ -67,15 +77,18 @@ function AppLayout({ children }) {
               location={location}
               onNavigate={() => setMenuAberto(false)}
             />
+
           </aside>
         </div>
       )}
 
+      {/* CONTEÚDO */}
       <main className="lg:ml-72 min-h-screen">
         <div className="max-w-7xl mx-auto px-5 md:px-8 py-8">
           {children}
         </div>
       </main>
+
     </div>
   );
 }
@@ -83,11 +96,15 @@ function AppLayout({ children }) {
 function SidebarContent({ links, location, onNavigate }) {
   return (
     <div className="h-full flex flex-col">
-      <div className="px-6 py-5 border-b border-slate-800">
-        <Logo dark />
+
+      {/* LOGO */}
+      <div className="px-6 py-5 border-b border-[#DDEFE7]">
+        <Logo />
       </div>
 
+      {/* LINKS */}
       <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+
         {links.map((item) => {
           const ativo = location.pathname === item.path;
 
@@ -96,10 +113,10 @@ function SidebarContent({ links, location, onNavigate }) {
               key={item.path}
               to={item.path}
               onClick={onNavigate}
-              className={`flex items-center gap-4 px-4 py-4 rounded-2xl font-semibold transition ${
+              className={`flex items-center gap-4 px-4 py-4 rounded-2xl font-semibold transition-all duration-300 ${
                 ativo
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-300 hover:bg-slate-900 hover:text-white"
+                  ? "bg-[#BFEFD5] text-[#167C5A] shadow-sm"
+                  : "text-[#4B6B61] hover:bg-[#E5F7EE] hover:text-[#167C5A]"
               }`}
             >
               {item.icon}
@@ -107,16 +124,20 @@ function SidebarContent({ links, location, onNavigate }) {
             </Link>
           );
         })}
+
       </nav>
 
-      <div className="px-4 py-5 border-t border-slate-800">
+      {/* BOTÃO SAIR */}
+      <div className="px-4 py-5 border-t border-[#DDEFE7]">
+
         <Link
           to="/login"
-          className="flex items-center gap-4 px-4 py-4 rounded-2xl font-semibold text-slate-300 hover:bg-slate-900"
+          className="flex items-center gap-4 px-4 py-4 rounded-2xl font-semibold text-[#4B6B61] hover:bg-[#E5F7EE] transition-all duration-300"
         >
           <LogOut size={23} />
           Sair
         </Link>
+
       </div>
     </div>
   );
@@ -125,13 +146,15 @@ function SidebarContent({ links, location, onNavigate }) {
 function Logo() {
   return (
     <div className="flex items-center gap-3">
-      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-white">
+
+      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#5ED6A7] to-[#38B487] flex items-center justify-center text-white shadow-md">
         <Brain size={26} />
       </div>
 
-      <h1 className="text-2xl font-bold text-white">
-        Check<span className="text-blue-500">Mente</span>
+      <h1 className="text-2xl font-bold text-[#1F3D35]">
+        Check<span className="text-[#4CC38A]">Mente</span>
       </h1>
+
     </div>
   );
 }
