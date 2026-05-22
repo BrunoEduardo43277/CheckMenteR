@@ -1,6 +1,6 @@
 import { promptBase } from "./promptBase";
 
-const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+const API_KEY = import.meta.env.VITE_KIMI_API_KEY;
 
 function extrairJSON(texto) {
   try {
@@ -26,14 +26,14 @@ export async function gerarRespostaIA(historico) {
     content: msg.texto,
   }));
 
-  const resposta = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  const resposta = await fetch("https://api.moonshot.ai/v1/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${API_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "openai/gpt-4o-mini",
+      model: "moonshot-v1-8k",
       messages: [
         {
           role: "system",
