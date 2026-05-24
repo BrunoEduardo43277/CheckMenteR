@@ -5,21 +5,21 @@ import { auth, db } from "../../services/firebase";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 function Checkin() {
-  const [emocao, setEmocao] = useState("");
+  const [emocao, setemocao] = useState("");
   const [intensidade, setIntensidade] = useState(0);
   const [contexto, setContexto] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [carregando, setCarregando] = useState(false);
 
   const emocoes = [
-    { nome: "Muito Feliz", imagem: "src/assets/imagens/1.png" },
-    { nome: "Feliz", imagem: "src/assets/imagens/2.png" },
-    { nome: "Neutro", imagem: "src/assets/imagens/3.png" },
-    { nome: "Triste", imagem: "src/assets/imagens/4.png" },
-    { nome: "Muito Triste", imagem: "src/assets/imagens/5.png" },
-    { nome: "Ansioso", imagem: "src/assets/imagens/6.png" },
-    { nome: "Irritado", imagem: "src/assets/imagens/7.png" },
-    { nome: "Cansado", imagem: "src/assets/imagens/8.png" },
+    { nome: "Muito Feliz", imagem: new URL("../../assets/imagens/1.png", import.meta.url).href },
+    { nome: "Feliz", imagem: new URL("../../assets/imagens/2.png", import.meta.url).href },
+    { nome: "Neutro", imagem: new URL("../../assets/imagens/3.png", import.meta.url).href },
+    { nome: "Triste", imagem: new URL("../../assets/imagens/4.png", import.meta.url).href },
+    { nome: "Muito Triste", imagem: new URL("../../assets/imagens/5.png", import.meta.url).href },
+    { nome: "Ansioso", imagem: new URL("../../assets/imagens/6.png", import.meta.url).href },
+    { nome: "Irritado", imagem: new URL("../../assets/imagens/7.png", import.meta.url).href },
+    { nome: "Cansado", imagem: new URL("../../assets/imagens/8.png", import.meta.url).href },
   ];
 
   async function registrarCheckin() {
@@ -40,7 +40,7 @@ function Checkin() {
         criadoEm: serverTimestamp(),
       });
       alert("Check-in registrado com sucesso!");
-      setEmocao("");
+      setemocao("");
       setIntensidade(0);
       setContexto("");
       setMensagem("");
@@ -72,7 +72,7 @@ function Checkin() {
             </div>
 
             <h2 className="text-xl font-semibold text-slate-800">
-              Indique sua emoÃ§Ã£o
+              Indique sua emocao
             </h2>
           </div>
 
@@ -81,7 +81,7 @@ function Checkin() {
               <button
                 key={item.nome}
                 onClick={() => {
-                  setEmocao(item.nome);
+                  setemocao(item.nome);
                   setIntensidade(0);
                   setContexto("");
                   setMensagem("");
