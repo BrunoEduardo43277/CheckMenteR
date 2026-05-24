@@ -1,7 +1,7 @@
 import { useState } from "react";
 import AppLayout from "../../layouts/AppLayout";
 import { Heart, Send } from "lucide-react";
-import { auth, db } from "../services/firebase";
+import { auth, db } from "../../services/firebase";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 function Checkin() {
@@ -9,6 +9,7 @@ function Checkin() {
   const [intensidade, setIntensidade] = useState(0);
   const [contexto, setContexto] = useState("");
   const [mensagem, setMensagem] = useState("");
+  const [carregando, setCarregando] = useState(false);
 
   const emocoes = [
     { nome: "Muito Feliz", imagem: "src/assets/imagens/1.png" },
@@ -21,12 +22,10 @@ function Checkin() {
     { nome: "Cansado", imagem: "src/assets/imagens/8.png" },
   ];
 
-  const [carregando, setCarregando] = useState(false);
-
   async function registrarCheckin() {
     const user = auth.currentUser;
     if (!user) {
-      alert("Você precisa estar logado para fazer check-in.");
+      alert("VocÃª precisa estar logado para fazer check-in.");
       return;
     }
 
@@ -36,8 +35,8 @@ function Checkin() {
         userId: user.uid,
         emocao,
         intensidade,
-        contexto: contexto || "Não informado",
-        mensagem: mensagem || "Não informado",
+        contexto: contexto || "NÃ£o informado",
+        mensagem: mensagem || "NÃ£o informado",
         criadoEm: serverTimestamp(),
       });
       alert("Check-in registrado com sucesso!");
@@ -62,18 +61,18 @@ function Checkin() {
           </h1>
 
           <p className="text-slate-500 text-base mt-3">
-            Como você está se sentindo agora?
+            Como vocÃª estÃ¡ se sentindo agora?
           </p>
         </div>
 
         <section className="bg-white rounded-[28px] border border-slate-200 shadow-sm p-8 mb-8">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-green-50 text-white-5000 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center">
               <Heart size={24} />
             </div>
 
             <h2 className="text-xl font-semibold text-slate-800">
-              Indique sua emoção
+              Indique sua emoÃ§Ã£o
             </h2>
           </div>
 
@@ -87,10 +86,11 @@ function Checkin() {
                   setContexto("");
                   setMensagem("");
                 }}
-                className={`rounded-[24px] p-6 border transition-all duration-300 hover:shadow-md ${emocao === item.nome
+                className={`rounded-[24px] p-6 border transition-all duration-300 hover:shadow-md ${
+                  emocao === item.nome
                     ? "border-blue-200 bg-blue-50"
                     : "border-slate-100 hover:bg-slate-50"
-                  }`}
+                }`}
               >
                 <img
                   src={item.imagem}
@@ -121,10 +121,11 @@ function Checkin() {
                     setContexto("");
                     setMensagem("");
                   }}
-                  className={`py-4 rounded-2xl font-medium text-base transition-all duration-300 ${intensidade >= numero
+                  className={`py-4 rounded-2xl font-medium text-base transition-all duration-300 ${
+                    intensidade >= numero
                       ? "bg-gradient-to-r from-[#5ED6A7] to-[#38B487] text-white shadow-md"
                       : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                    }`}
+                  }`}
                 >
                   {numero}
                 </button>
@@ -168,7 +169,7 @@ function Checkin() {
             <textarea
               value={mensagem}
               onChange={(e) => setMensagem(e.target.value)}
-              placeholder="Escreva aqui como você está se sentindo..."
+              placeholder="Escreva aqui como vocÃª estÃ¡ se sentindo..."
               className="w-full min-h-36 rounded-2xl border border-slate-200 px-5 py-4 text-base outline-none focus:border-blue-500 resize-none"
             />
           </section>
