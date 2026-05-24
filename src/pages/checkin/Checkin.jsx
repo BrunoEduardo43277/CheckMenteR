@@ -1,7 +1,7 @@
 import { useState } from "react";
 import AppLayout from "../../layouts/AppLayout";
 import { Heart, Send } from "lucide-react";
-import { auth, db } from "../services/firebase";
+import { auth, db } from "../../services/firebase";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 function Checkin() {

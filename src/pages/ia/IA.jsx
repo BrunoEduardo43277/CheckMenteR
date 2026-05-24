@@ -179,7 +179,7 @@ function IA() {
         {
           autor: "ia",
           texto:
-            "Erro da Kimi: " + (error.message || "Não foi possível conectar com a IA."),
+            "Erro da IA : " + (error.message || "Não foi possível conectar com a IA."),
         },
       ]);
     } finally {

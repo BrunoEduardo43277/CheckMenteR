@@ -1,6 +1,6 @@
 import { construirPrompt } from "./promptBase";
 
-const API_KEY = import.meta.env.VITE_KIMI_API_KEY;
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 function extrairJSON(texto) {
   try {
@@ -15,56 +15,51 @@ function extrairJSON(texto) {
       resposta: texto,
       emocaoDetectada: "Em análise",
       nivelAtencao: "Em avaliação",
+      riscoEmocional: "baixo",
       recomendacao: "Continuar acompanhamento emocional.",
     };
   }
 }
 
 export async function gerarRespostaIA(historico, nomeAluno = "Aluno", ultimoCheckin = null) {
-  const mensagensFormatadas = historico.map((msg) => ({
-    role: msg.autor === "usuario" ? "user" : "assistant",
-    content: msg.texto,
-  }));
+  const mensagensTexto = historico
+    .map((msg) => `${msg.autor === "usuario" ? "Aluno" : "Mentinha"}: ${msg.texto}`)
+    .join("\n");
 
-  const resposta = await fetch("https://api.moonshot.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "moonshot-v1-8k",
-      messages: [
-        {
-          role: "system",
-          content: `
+  const resposta = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: `
 ${construirPrompt(nomeAluno, ultimoCheckin)}
 
-Responda SEMPRE em JSON válido, sem markdown, exatamente assim:
-{
-  "resposta": "mensagem acolhedora para o usuário",
-  "emocaoDetectada": "emoção principal",
-  "nivelAtencao": "baixo, moderado ou alto",
-  "recomendacao": "recomendação interna curta"
-}
-
-Apenas o campo "resposta" será exibido ao usuário.
-`,
-        },
-        ...mensagensFormatadas,
-      ],
-    }),
-  });
+Histórico da conversa:
+${mensagensTexto}
+                `,
+              },
+            ],
+          },
+        ],
+      }),
+    }
+  );
 
   if (!resposta.ok) {
-    throw new Error(`Erro na API: ${resposta.status} ${resposta.statusText}`);
+    throw new Error(`Erro na API: ${resposta.status}`);
   }
 
   const dados = await resposta.json();
 
   const textoIA =
-    dados.choices?.[0]?.message?.content ||
-    "{}";
+    dados.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
 
   const resultado = extrairJSON(textoIA);
 

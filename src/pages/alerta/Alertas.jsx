@@ -9,7 +9,7 @@ import {
   MessageCircle,
   ShieldAlert,
 } from "lucide-react";
-import { auth, db } from "../services/firebase";
+import { auth, db } from "../../services/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 
 function Alertas() {
