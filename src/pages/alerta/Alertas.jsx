@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import AppLayout from "../../layouts/AppLayout"; 
+import { useEffect, useState } from "react";
+import AppLayout from "../../layouts/AppLayout";
 import {
   Bell,
   CheckCircle2,
@@ -9,7 +9,7 @@ import {
   MessageCircle,
   ShieldAlert,
 } from "lucide-react";
-import { auth, db } from "../services/firebase";
+import { db } from "../../services/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 
 function Alertas() {
@@ -31,10 +31,7 @@ function Alertas() {
 
   const filtrados = alertas.filter((item) => {
     const combinaFiltro = filtro === "Todos" || item.nivel === filtro;
-    const combinaBusca = item.aluno
-      ?.toLowerCase()
-      .includes(busca.toLowerCase());
-
+    const combinaBusca = item.aluno?.toLowerCase().includes(busca.toLowerCase());
     return combinaFiltro && combinaBusca;
   });
 
@@ -52,45 +49,21 @@ function Alertas() {
           </h1>
 
           <p className="text-slate-500 text-base mt-3">
-            Monitoramento inteligente de padrões emocionais gerados pela IA.
+            Monitoramento inteligente de padrÃµes emocionais gerados pela IA.
           </p>
         </div>
 
         <div className="grid md:grid-cols-4 gap-5 mb-8">
-          <ResumoCard
-            icon={<Bell size={22} />}
-            titulo="Alertas ativos"
-            valor={total}
-            cor="blue"
-          />
-
-          <ResumoCard
-            icon={<ShieldAlert size={22} />}
-            titulo="Alto risco"
-            valor={alto}
-            cor="red"
-          />
-
-          <ResumoCard
-            icon={<Clock size={22} />}
-            titulo="Pendentes"
-            valor={pendentes}
-            cor="orange"
-          />
-
-          <ResumoCard
-            icon={<CheckCircle2 size={22} />}
-            titulo="Resolvidos"
-            valor={resolvidos}
-            cor="green"
-          />
+          <ResumoCard icon={<Bell size={22} />} titulo="Alertas ativos" valor={total} cor="blue" />
+          <ResumoCard icon={<ShieldAlert size={22} />} titulo="Alto risco" valor={alto} cor="red" />
+          <ResumoCard icon={<Clock size={22} />} titulo="Pendentes" valor={pendentes} cor="orange" />
+          <ResumoCard icon={<CheckCircle2 size={22} />} titulo="Resolvidos" valor={resolvidos} cor="green" />
         </div>
 
         <section className="bg-white rounded-[28px] border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100 grid lg:grid-cols-[1fr_auto] gap-4">
             <div className="flex items-center border border-slate-200 rounded-2xl px-4 py-3">
               <Search size={20} className="text-slate-400 mr-3" />
-
               <input
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
@@ -100,7 +73,7 @@ function Alertas() {
             </div>
 
             <div className="flex gap-3 overflow-x-auto">
-              {["Todos", "Alto", "Médio", "Baixo"].map((item) => (
+              {["Todos", "Alto", "MÃ©dio", "Baixo"].map((item) => (
                 <button
                   key={item}
                   onClick={() => setFiltro(item)}
@@ -140,23 +113,17 @@ function ResumoCard({ icon, titulo, valor, cor }) {
 
   return (
     <div className="bg-white rounded-[28px] border border-slate-200 p-6 shadow-sm">
-      <div
-        className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${cores[cor]}`}
-      >
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${cores[cor]}`}>
         {icon}
       </div>
-
-      <h2 className="text-2xl font-semibold tracking-tight text-slate-800">
-        {valor}
-      </h2>
-
+      <h2 className="text-2xl font-semibold tracking-tight text-slate-800">{valor}</h2>
       <p className="text-slate-500 text-sm mt-1">{titulo}</p>
     </div>
   );
 }
 
 function AlertaCard({ alerta }) {
-  const riscoEstimado = alerta.nivel === "Alto" ? 90 : alerta.nivel === "Médio" ? 60 : 30;
+  const riscoEstimado = alerta.nivel === "Alto" ? 90 : alerta.nivel === "MÃ©dio" ? 60 : 30;
 
   return (
     <div className="rounded-[26px] border border-slate-100 bg-white p-6 shadow-sm hover:shadow-md transition">
@@ -168,16 +135,11 @@ function AlertaCard({ alerta }) {
 
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              <h2 className="text-xl font-semibold text-slate-800">
-                {alerta.aluno}
-              </h2>
-
+              <h2 className="text-xl font-semibold text-slate-800">{alerta.aluno}</h2>
               <span className="text-sm text-slate-500">{alerta.turma}</span>
             </div>
 
-            <p className="text-slate-500 text-base mt-2 max-w-3xl">
-              {alerta.descricao}
-            </p>
+            <p className="text-slate-500 text-base mt-2 max-w-3xl">{alerta.descricao}</p>
 
             <div className="flex flex-wrap gap-2 mt-4">
               <BadgeNivel nivel={alerta.nivel} />
@@ -189,19 +151,12 @@ function AlertaCard({ alerta }) {
         <div className="xl:w-64">
           <div className="flex justify-between text-sm mb-2">
             <span className="text-slate-500">Risco emocional estimado</span>
-            <span className="font-semibold text-slate-800">
-              {riscoEstimado}%
-            </span>
+            <span className="font-semibold text-slate-800">{riscoEstimado}%</span>
           </div>
-
           <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
             <div
               className={`h-full rounded-full ${
-                riscoEstimado >= 75
-                  ? "bg-red-500"
-                  : riscoEstimado >= 50
-                  ? "bg-orange-400"
-                  : "bg-blue-500"
+                riscoEstimado >= 75 ? "bg-red-500" : riscoEstimado >= 50 ? "bg-orange-400" : "bg-blue-500"
               }`}
               style={{ width: `${riscoEstimado}%` }}
             />
@@ -215,7 +170,6 @@ function AlertaCard({ alerta }) {
             <Brain size={18} className="text-blue-600" />
             <p className="font-medium text-slate-800">Origem do Alerta</p>
           </div>
-
           <p className="text-slate-500 text-sm leading-relaxed">
             Gerado automaticamente pela IA Mentinha durante conversa de acolhimento.
           </p>
@@ -235,14 +189,12 @@ function AlertaCard({ alerta }) {
 function BadgeNivel({ nivel }) {
   const estilos = {
     Alto: "bg-red-50 text-red-500 border-red-100",
-    Médio: "bg-orange-50 text-orange-500 border-orange-100",
+    MÃ©dio: "bg-orange-50 text-orange-500 border-orange-100",
     Baixo: "bg-blue-50 text-blue-600 border-blue-100",
   };
 
   return (
-    <span
-      className={`px-3 py-1 rounded-full border text-sm font-medium ${estilos[nivel || "Baixo"]}`}
-    >
+    <span className={`px-3 py-1 rounded-full border text-sm font-medium ${estilos[nivel || "Baixo"]}`}>
       {nivel || "Baixo"}
     </span>
   );
