@@ -1,4 +1,4 @@
-import AppLayout from "../../layouts/AppLayout";
+import AppLayout from "../../../layouts/AppLayout";
 import { useState } from "react";
 
 import {
@@ -31,26 +31,27 @@ function Respirar() {
 
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <ExercicioCard
-                                onClick={() => navegarPara("/respiracao-t1")}
+                                
                                 icon={<Wind size={24} />}
                                 titulo="Respiração 4-4-4"
                                 descricao="Inspire por 4s, segure por 4s, expire por 4s"
                                 cor="emerald"
+                                onClick={() => navegarPara("/respiracao-t1")}
                             />
 
                             <ExercicioCard
-                                onClick={() => navegarPara("/sons-relaxantes")}
+                                onClick={() => navegarPara("/Respiração relaxante")}
                                 icon={<CloudRain size={24} />}
-                                titulo="Sons Relaxantes"
-                                descricao="Chuva, floresta, mar ou vento"
+                                titulo="Respiração relaxante"
+                                descricao="Focada em diminuir a ansiedade e combater a insônia, atuando como um &quot;calmante natural&quot;"
                                 cor="blue"
                             />
 
                             <ExercicioCard
-                                onClick={() => navegarPara("/pausar-pensamentos")}
+                                onClick={() => navegarPara("/Relaxamento Progressivo")}
                                 icon={<Sparkles size={24} />}
-                                titulo="Pausar Pensamentos"
-                                descricao="Exercício rápido de atenção plena"
+                                titulo="Relaxamento Progressivo"
+                                descricao="Alivia a tensão física acumulada e desliga o estado de alerta do corpo."
                                 cor="violet"
                             />
 

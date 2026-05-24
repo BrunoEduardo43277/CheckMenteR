@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import AppLayout from "../layouts/AppLayout";
+import AppLayout from "../../layouts/AppLayout";
 import {
   User,
   Mail,
@@ -15,7 +15,7 @@ import {
 
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { auth, db } from "../services/firebase";
+import { auth, db } from "../../services/firebase";
 
 const initialData = {
   nome: "",

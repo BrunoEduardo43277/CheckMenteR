@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import AppLayout from "../layouts/AppLayout";
+import AppLayout from "../../layouts/AppLayout";
 import { Sparkles, Send } from "lucide-react";
-import { gerarRespostaIA } from "../services/mentinha";
+import { gerarRespostaIA } from "../../services/mentinha";
 
-import { auth, db } from "../services/firebase";
+import { auth, db } from "../../services/firebase";
 import {
   addDoc,
   collection,

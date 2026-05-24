@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import AppLayout from "../layouts/AppLayout";
+import AppLayout from "../../layouts/AppLayout";
 import {
   MessageCircle,
   Check,

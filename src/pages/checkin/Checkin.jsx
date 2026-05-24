@@ -1,5 +1,5 @@
 import { useState } from "react";
-import AppLayout from "../layouts/AppLayout";
+import AppLayout from "../../layouts/AppLayout";
 import { Heart, Send } from "lucide-react";
 
 function Checkin() {
@@ -9,14 +9,14 @@ function Checkin() {
   const [mensagem, setMensagem] = useState("");
 
   const emocoes = [
-    { nome: "Muito Feliz", imagem: "/emocoes/1.png" },
-    { nome: "Feliz", imagem: "/emocoes/2.png" },
-    { nome: "Neutro", imagem: "/emocoes/3.png" },
-    { nome: "Triste", imagem: "/emocoes/4.png" },
-    { nome: "Muito Triste", imagem: "/emocoes/5.png" },
-    { nome: "Ansioso", imagem: "/emocoes/6.png" },
-    { nome: "Irritado", imagem: "/emocoes/7.png" },
-    { nome: "Cansado", imagem: "/emocoes/8.png" },
+    { nome: "Muito Feliz", imagem: "src/assets/imagens/1.png" },
+    { nome: "Feliz", imagem: "src/assets/imagens/2.png" },
+    { nome: "Neutro", imagem: "src/assets/imagens/3.png" },
+    { nome: "Triste", imagem: "src/assets/imagens/4.png" },
+    { nome: "Muito Triste", imagem: "src/assets/imagens/5.png" },
+    { nome: "Ansioso", imagem: "src/assets/imagens/6.png" },
+    { nome: "Irritado", imagem: "src/assets/imagens/7.png" },
+    { nome: "Cansado", imagem: "src/assets/imagens/8.png" },
   ];
 
   function registrarCheckin() {

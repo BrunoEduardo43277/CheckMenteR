@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import AppLayout from "../layouts/AppLayout";
+import AppLayout from "../../layouts/AppLayout";
 import { sendPasswordResetEmail } from "firebase/auth";
 import {
   Settings,
@@ -11,8 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 
-import { auth, db } from "../services/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db } from "../../services/firebase";
 
 function Configuracoes() {
   const [notificacoes, setNotificacoes] = useState(true);

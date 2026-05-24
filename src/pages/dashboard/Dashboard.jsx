@@ -1,4 +1,4 @@
-import AppLayout from "../layouts/AppLayout";
+import AppLayout from "../../layouts/AppLayout";
 import { Link } from "react-router-dom";
 
 import {
@@ -12,7 +12,7 @@ import {
 
 function Dashboard() {
 
-  const imageUrl = "/public/logoCheck.png";
+  const imageUrl = "src/assets/imagens/estampa.png";
 
   return (
     <AppLayout>
@@ -23,7 +23,7 @@ function Dashboard() {
         <section className="mb-10">
 
           <h1 className="text-4xl font-semibold tracking-tight text-slate-800">
-            Olá, aluno
+            Olá, {"usuario"}!
           </h1>
 
           <p className="text-slate-500 mt-3 text-base">
@@ -80,7 +80,7 @@ function Dashboard() {
 
                   <img
                     src={imageUrl}
-                    alt="Trilha"
+                    alt="estampa.png"
                     className="w-full h-full object-cover"
                   />
 

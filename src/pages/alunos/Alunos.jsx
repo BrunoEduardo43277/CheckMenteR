@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import AppLayout from "../layouts/AppLayout";
+import { useEffect, useState } from "react"
+import AppLayout from "../../layouts/AppLayout";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "../services/firebase";
+import { db } from "../../services/firebase";
 import { Users, Search } from "lucide-react";
 
 function Alunos() {
