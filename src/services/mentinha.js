@@ -1,6 +1,6 @@
-import { promptBase } from "./promptBase";
+import { construirPrompt } from "./promptBase";
 
-const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+const API_KEY = import.meta.env.VITE_KIMI_API_KEY;
 
 function extrairJSON(texto) {
   try {
@@ -20,25 +20,25 @@ function extrairJSON(texto) {
   }
 }
 
-export async function gerarRespostaIA(historico) {
+export async function gerarRespostaIA(historico, nomeAluno = "Aluno", ultimoCheckin = null) {
   const mensagensFormatadas = historico.map((msg) => ({
     role: msg.autor === "usuario" ? "user" : "assistant",
     content: msg.texto,
   }));
 
-  const resposta = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  const resposta = await fetch("https://api.moonshot.ai/v1/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${API_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "openai/gpt-4o-mini",
+      model: "moonshot-v1-8k",
       messages: [
         {
           role: "system",
           content: `
-${promptBase}
+${construirPrompt(nomeAluno, ultimoCheckin)}
 
 Responda SEMPRE em JSON válido, sem markdown, exatamente assim:
 {
@@ -57,7 +57,7 @@ Apenas o campo "resposta" será exibido ao usuário.
   });
 
   if (!resposta.ok) {
-    throw new Error("Erro ao conectar com a IA.");
+    throw new Error(`Erro na API: ${resposta.status} ${resposta.statusText}`);
   }
 
   const dados = await resposta.json();
@@ -72,6 +72,7 @@ Apenas o campo "resposta" será exibido ao usuário.
     resposta: resultado.resposta,
     emocaoDetectada: resultado.emocaoDetectada,
     nivelAtencao: resultado.nivelAtencao,
+    riscoEmocional: resultado.riscoEmocional,
     recomendacao: resultado.recomendacao,
   };
 }

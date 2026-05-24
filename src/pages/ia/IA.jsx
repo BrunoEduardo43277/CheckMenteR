@@ -12,6 +12,11 @@ import {
   where,
   orderBy,
   onSnapshot,
+  doc,
+  getDoc,
+  setDoc,
+  limit,
+  getDocs
 } from "firebase/firestore";
 
 function IA() {
@@ -19,17 +24,69 @@ function IA() {
   const [historicoConversas, setHistoricoConversas] = useState([]);
   const [carregando, setCarregando] = useState(false);
 
-  const [mensagens, setMensagens] = useState([
-    {
-      autor: "ia",
-      texto:
-        "Olá! Sou a Mentinha, assistente emocional do CheckMente. Como você está se sentindo hoje?",
-    },
-  ]);
+  const [nomeAluno, setNomeAluno] = useState("");
+  const [ultimoCheckin, setUltimoCheckin] = useState(null);
+  const [contextoOculto, setContextoOculto] = useState([]);
+  
+  const [mensagens, setMensagens] = useState([]);
+
+  useEffect(() => {
+    async function carregarDadosIniciais() {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      try {
+        // 1. Buscar Nome do Aluno
+        const userRef = doc(db, "usuarios", user.uid);
+        const userSnap = await getDoc(userRef);
+        let nome = "Aluno";
+        if (userSnap.exists() && userSnap.data().nome) {
+          nome = userSnap.data().nome.split(" ")[0]; // Pegar só o primeiro nome
+        }
+        setNomeAluno(nome);
+
+        // 2. Buscar último check-in
+        const checkinsQuery = query(
+          collection(db, "checkins"),
+          where("userId", "==", user.uid),
+          orderBy("criadoEm", "desc"),
+          limit(1)
+        );
+        const checkinsSnap = await getDocs(checkinsQuery);
+        if (!checkinsSnap.empty) {
+          setUltimoCheckin(checkinsSnap.docs[0].data());
+        }
+
+        // 3. Carregar Sessão Oculta
+        const sessaoRef = doc(db, "sessoesIA", user.uid);
+        const sessaoSnap = await getDoc(sessaoRef);
+        if (sessaoSnap.exists() && sessaoSnap.data().historico) {
+          setContextoOculto(sessaoSnap.data().historico);
+        }
+
+        // Inicializar a mensagem de saudação limpa na tela
+        setMensagens([
+          {
+            autor: "ia",
+            texto: `Olá, ${nome}! Sou a Mentinha, assistente emocional do CheckMente. Como você está se sentindo hoje?`,
+          },
+        ]);
+      } catch (e) {
+        console.error("Erro ao carregar dados iniciais:", e);
+        setMensagens([
+          { autor: "ia", texto: "Olá! Sou a Mentinha. Como posso te ajudar hoje?" }
+        ]);
+      }
+    }
+
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) carregarDadosIniciais();
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const usuario = auth.currentUser;
-
     if (!usuario) return;
 
     const consulta = query(
@@ -39,9 +96,9 @@ function IA() {
     );
 
     const pararDeOuvir = onSnapshot(consulta, (snapshot) => {
-      const conversas = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
+      const conversas = snapshot.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
       }));
 
       setHistoricoConversas(conversas);
@@ -60,14 +117,16 @@ function IA() {
       texto: mensagem,
     };
 
-    const historico = [...mensagens, novaMensagem];
-
-    setMensagens(historico);
+    const mensagensTela = [...mensagens, novaMensagem];
+    setMensagens(mensagensTela);
     setMensagem("");
     setCarregando(true);
 
     try {
-      const respostaIA = await gerarRespostaIA(historico);
+      // Combina o contexto oculto do passado com as mensagens ativas na tela
+      const historicoCompleto = [...contextoOculto, ...mensagensTela];
+
+      const respostaIA = await gerarRespostaIA(historicoCompleto, nomeAluno, ultimoCheckin);
 
       const respostaDaIA = {
         autor: "ia",
@@ -76,23 +135,51 @@ function IA() {
 
       setMensagens((old) => [...old, respostaDaIA]);
 
-      await addDoc(collection(db, "conversasIA"), {
-        userId: auth.currentUser?.uid || null,
-        mensagemUsuario: novaMensagem.texto,
-        respostaIA: respostaIA.resposta,
-        titulo: gerarTitulo(novaMensagem.texto),
-        resumo: respostaIA.resposta.slice(0, 80),
-        criadoEm: serverTimestamp(),
-      });
-    } catch (error) {
-      console.log(error);
+      const novoHistoricoParaSalvar = [...historicoCompleto, respostaDaIA];
+      setContextoOculto(novoHistoricoParaSalvar);
 
+      try {
+        await addDoc(collection(db, "conversasIA"), {
+          userId: auth.currentUser?.uid || null,
+          mensagemUsuario: novaMensagem.texto,
+          respostaIA: respostaIA.resposta,
+          titulo: gerarTitulo(novaMensagem.texto),
+          resumo: respostaIA.resposta.slice(0, 80),
+          criadoEm: serverTimestamp(),
+        });
+
+        const user = auth.currentUser;
+        if (user) {
+          await setDoc(doc(db, "sessoesIA", user.uid), {
+            historico: novoHistoricoParaSalvar,
+            ultimaInteracao: serverTimestamp(),
+            userId: user.uid,
+          });
+
+          // Gerar Alerta Preventivo Real
+          if (respostaIA.riscoEmocional && respostaIA.riscoEmocional.toLowerCase() === "alto") {
+            await addDoc(collection(db, "alertas"), {
+              aluno: nomeAluno || "Aluno",
+              iniciais: nomeAluno ? nomeAluno.substring(0, 2).toUpperCase() : "AL",
+              turma: "Não identificada", // Pode buscar a turma real se tiver no usuário
+              descricao: `A IA detectou um risco emocional ALTO. A emoção detectada foi: ${respostaIA.emocaoDetectada}. Recomendação da IA: ${respostaIA.recomendacao}`,
+              nivel: "Alto",
+              status: "Pendente",
+              criadoEm: serverTimestamp()
+            });
+          }
+        }
+      } catch (firebaseError) {
+        console.error("Erro ao salvar no Firebase:", firebaseError);
+      }
+    } catch (error) {
+      console.error(error);
       setMensagens((old) => [
         ...old,
         {
           autor: "ia",
           texto:
-            "Desculpe, não consegui responder agora. Tente novamente em alguns segundos.",
+            "Erro da Kimi: " + (error.message || "Não foi possível conectar com a IA."),
         },
       ]);
     } finally {
@@ -182,8 +269,6 @@ function IA() {
                   Conversas recentes
                 </p>
               </div>
-
-
             </div>
 
             <div className="space-y-3 overflow-y-auto max-h-[540px] pr-1">
