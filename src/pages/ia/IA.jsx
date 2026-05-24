@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import AppLayout from "../../layouts/AppLayout";
 import { Sparkles, Send } from "lucide-react";
 import { gerarRespostaIA } from "../../services/mentinha";
-
 import { auth, db } from "../../services/firebase";
 import {
   addDoc,
@@ -16,7 +15,7 @@ import {
   getDoc,
   setDoc,
   limit,
-  getDocs
+  getDocs,
 } from "firebase/firestore";
 
 function IA() {
@@ -32,29 +31,27 @@ function IA() {
     async function carregarDadosIniciais() {
       const user = auth.currentUser;
       if (!user) return;
-
       try {
-        const userRef = doc(db, "usuarios", user.uid);
-        const userSnap = await getDoc(userRef);
+        const userSnap = await getDoc(doc(db, "usuarios", user.uid));
         let nome = "Aluno";
         if (userSnap.exists() && userSnap.data().nome) {
           nome = userSnap.data().nome.split(" ")[0];
         }
         setNomeAluno(nome);
 
-        const checkinsQuery = query(
-          collection(db, "checkins"),
-          where("userId", "==", user.uid),
-          orderBy("criadoEm", "desc"),
-          limit(1)
+        const checkinsSnap = await getDocs(
+          query(
+            collection(db, "checkins"),
+            where("userId", "==", user.uid),
+            orderBy("criadoEm", "desc"),
+            limit(1)
+          )
         );
-        const checkinsSnap = await getDocs(checkinsQuery);
         if (!checkinsSnap.empty) {
           setUltimoCheckin(checkinsSnap.docs[0].data());
         }
 
-        const sessaoRef = doc(db, "sessoesIA", user.uid);
-        const sessaoSnap = await getDoc(sessaoRef);
+        const sessaoSnap = await getDoc(doc(db, "sessoesIA", user.uid));
         if (sessaoSnap.exists() && sessaoSnap.data().historico) {
           setContextoOculto(sessaoSnap.data().historico);
         }
@@ -62,14 +59,12 @@ function IA() {
         setMensagens([
           {
             autor: "ia",
-            texto: `OlÃ¡, ${nome}! Sou a Mentinha, assistente emocional do CheckMente. Como vocÃª estÃ¡ se sentindo hoje?`,
+            texto: "Oi, " + nome + "! Sou a Mentinha. Como voce esta se sentindo hoje?",
           },
         ]);
       } catch (e) {
-        console.error("Erro ao carregar dados iniciais:", e);
-        setMensagens([
-          { autor: "ia", texto: "OlÃ¡! Sou a Mentinha. Como vocÃª estÃ¡?" }
-        ]);
+        console.error(e);
+        setMensagens([{ autor: "ia", texto: "Oi! Sou a Mentinha. Como voce esta?" }]);
       }
     }
 
@@ -83,33 +78,27 @@ function IA() {
     const usuario = auth.currentUser;
     if (!usuario) return;
 
-    const consulta = query(
-      collection(db, "conversasIA"),
-      where("userId", "==", usuario.uid),
-      orderBy("criadoEm", "desc")
+    const pararDeOuvir = onSnapshot(
+      query(
+        collection(db, "conversasIA"),
+        where("userId", "==", usuario.uid),
+        orderBy("criadoEm", "desc")
+      ),
+      (snapshot) => {
+        setHistoricoConversas(
+          snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
+        );
+      }
     );
-
-    const pararDeOuvir = onSnapshot(consulta, (snapshot) => {
-      const conversas = snapshot.docs.map((d) => ({
-        id: d.id,
-        ...d.data(),
-      }));
-      setHistoricoConversas(conversas);
-    });
 
     return () => pararDeOuvir();
   }, []);
 
   async function enviarMensagem(e) {
     e.preventDefault();
-
     if (!mensagem.trim()) return;
 
-    const novaMensagem = {
-      autor: "usuario",
-      texto: mensagem,
-    };
-
+    const novaMensagem = { autor: "usuario", texto: mensagem };
     const mensagensTela = [...mensagens, novaMensagem];
     setMensagens(mensagensTela);
     setMensagem("");
@@ -117,17 +106,17 @@ function IA() {
 
     try {
       const historicoCompleto = [...contextoOculto, ...mensagensTela];
-      const respostaIA = await gerarRespostaIA(historicoCompleto, nomeAluno, ultimoCheckin);
-
-      const respostaDaIA = {
-        autor: "ia",
-        texto: respostaIA.resposta,
-      };
+      const respostaIA = await gerarRespostaIA(
+        historicoCompleto,
+        nomeAluno,
+        ultimoCheckin
+      );
+      const respostaDaIA = { autor: "ia", texto: respostaIA.resposta };
 
       setMensagens((old) => [...old, respostaDaIA]);
 
-      const novoHistoricoParaSalvar = [...historicoCompleto, respostaDaIA];
-      setContextoOculto(novoHistoricoParaSalvar);
+      const novoHistorico = [...historicoCompleto, respostaDaIA];
+      setContextoOculto(novoHistorico);
 
       try {
         await addDoc(collection(db, "conversasIA"), {
@@ -142,17 +131,26 @@ function IA() {
         const user = auth.currentUser;
         if (user) {
           await setDoc(doc(db, "sessoesIA", user.uid), {
-            historico: novoHistoricoParaSalvar,
+            historico: novoHistorico,
             ultimaInteracao: serverTimestamp(),
             userId: user.uid,
           });
 
-          if (respostaIA.riscoEmocional && respostaIA.riscoEmocional.toLowerCase() === "alto") {
+          if (
+            respostaIA.riscoEmocional &&
+            respostaIA.riscoEmocional.toLowerCase() === "alto"
+          ) {
             await addDoc(collection(db, "alertas"), {
               aluno: nomeAluno || "Aluno",
-              iniciais: nomeAluno ? nomeAluno.substring(0, 2).toUpperCase() : "AL",
-              turma: "NÃ£o identificada",
-              descricao: `A IA detectou risco emocional ALTO. EmoÃ§Ã£o: ${respostaIA.emocaoDetectada}. RecomendaÃ§Ã£o: ${respostaIA.recomendacao}`,
+              iniciais: nomeAluno
+                ? nomeAluno.substring(0, 2).toUpperCase()
+                : "AL",
+              turma: "Nao identificada",
+              descricao:
+                "A IA detectou risco emocional ALTO. Emocao: " +
+                respostaIA.emocaoDetectada +
+                ". Recomendacao: " +
+                respostaIA.recomendacao,
               nivel: "Alto",
               status: "Pendente",
               criadoEm: serverTimestamp(),
@@ -160,7 +158,7 @@ function IA() {
           }
         }
       } catch (firebaseError) {
-        console.error("Erro ao salvar no Firebase:", firebaseError);
+        console.error(firebaseError);
       }
     } catch (error) {
       console.error(error);
@@ -168,7 +166,7 @@ function IA() {
         ...old,
         {
           autor: "ia",
-          texto: "Erro: " + (error.message || "NÃ£o foi possÃ­vel conectar com a IA."),
+          texto: "Erro: " + (error.message || "Nao foi possivel conectar."),
         },
       ]);
     } finally {
@@ -183,14 +181,11 @@ function IA() {
           <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-[#5ED6A7] to-[#38B487] flex items-center justify-center text-white shadow-md">
             <Sparkles size={30} />
           </div>
-
           <div>
             <h1 className="text-4xl font-semibold tracking-tight text-slate-800">
               IA de Acolhimento
             </h1>
-            <p className="text-slate-500 text-base">
-              Converse com a Mentinha
-            </p>
+            <p className="text-slate-500 text-base">Converse com a Mentinha</p>
           </div>
         </div>
 
@@ -200,14 +195,15 @@ function IA() {
               {mensagens.map((msg, index) => (
                 <div
                   key={index}
-                  className={`flex ${msg.autor === "usuario" ? "justify-end" : "justify-start"}`}
+                  className={"flex " + (msg.autor === "usuario" ? "justify-end" : "justify-start")}
                 >
                   <div
-                    className={`max-w-3xl px-6 py-4 rounded-3xl shadow-sm text-base leading-relaxed ${
-                      msg.autor === "usuario"
+                    className={
+                      "max-w-3xl px-6 py-4 rounded-3xl shadow-sm text-base leading-relaxed " +
+                      (msg.autor === "usuario"
                         ? "bg-gradient-to-r from-[#5ED6A7] to-[#38B487] text-white rounded-br-md"
-                        : "bg-white border border-slate-200 text-slate-800 rounded-bl-md"
-                    }`}
+                        : "bg-white border border-slate-200 text-slate-800 rounded-bl-md")
+                    }
                   >
                     {msg.texto}
                   </div>
@@ -217,7 +213,7 @@ function IA() {
               {carregando && (
                 <div className="flex justify-start">
                   <div className="bg-white border border-slate-200 px-6 py-4 rounded-3xl text-slate-500 text-base">
-                    Mentinha estÃ¡ digitando...
+                    Mentinha esta digitando...
                   </div>
                 </div>
               )}
@@ -230,7 +226,7 @@ function IA() {
               <div className="flex items-center gap-3">
                 <input
                   type="text"
-                  placeholder="Escreva como vocÃª se sente..."
+                  placeholder="Escreva como voce se sente..."
                   value={mensagem}
                   onChange={(e) => setMensagem(e.target.value)}
                   className="flex-1 h-14 rounded-2xl border border-slate-200 bg-white px-5 text-base outline-none focus:border-blue-500"
@@ -247,13 +243,10 @@ function IA() {
           </section>
 
           <aside className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm h-full">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-semibold text-slate-800">HistÃ³rico</h2>
-                <p className="text-sm text-slate-500 mt-1">Conversas recentes</p>
-              </div>
+            <div className="mb-6">
+              <h2 className="text-2xl font-semibold text-slate-800">Historico</h2>
+              <p className="text-sm text-slate-500 mt-1">Conversas recentes</p>
             </div>
-
             <div className="space-y-3 overflow-y-auto max-h-[540px] pr-1">
               {historicoConversas.length === 0 ? (
                 <p className="text-sm text-slate-500">Nenhuma conversa salva ainda.</p>
@@ -279,9 +272,12 @@ function IA() {
 function ConversaItem({ titulo, resumo, horario, ativo }) {
   return (
     <button
-      className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 ${
-        ativo ? "bg-violet-50 border-violet-200" : "bg-white border-slate-100 hover:bg-slate-50"
-      }`}
+      className={
+        "w-full text-left p-4 rounded-2xl border transition-all duration-300 " +
+        (ativo
+          ? "bg-violet-50 border-violet-200"
+          : "bg-white border-slate-100 hover:bg-slate-50")
+      }
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -301,8 +297,7 @@ function gerarTitulo(texto) {
 
 function formatarData(dataFirebase) {
   if (!dataFirebase) return "Agora";
-  const data = dataFirebase.toDate();
-  return data.toLocaleDateString("pt-BR");
+  return dataFirebase.toDate().toLocaleDateString("pt-BR");
 }
 
 export default IA;
