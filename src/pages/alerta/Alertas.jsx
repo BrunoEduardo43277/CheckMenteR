@@ -73,7 +73,7 @@ function Alertas() {
             </div>
 
             <div className="flex gap-3 overflow-x-auto">
-              {["Todos", "Alto", "MÃ©dio", "Baixo"].map((item) => (
+              {["Todos", "Alto", "Médio", "Baixo"].map((item) => (
                 <button
                   key={item}
                   onClick={() => setFiltro(item)}
@@ -123,7 +123,7 @@ function ResumoCard({ icon, titulo, valor, cor }) {
 }
 
 function AlertaCard({ alerta }) {
-  const riscoEstimado = alerta.nivel === "Alto" ? 90 : alerta.nivel === "MÃ©dio" ? 60 : 30;
+  const riscoEstimado = alerta.nivel === "Alto" ? 90 : alerta.nivel === "Médio" ? 60 : 30;
 
   return (
     <div className="rounded-[26px] border border-slate-100 bg-white p-6 shadow-sm hover:shadow-md transition">
@@ -189,7 +189,7 @@ function AlertaCard({ alerta }) {
 function BadgeNivel({ nivel }) {
   const estilos = {
     Alto: "bg-red-50 text-red-500 border-red-100",
-    MÃ©dio: "bg-orange-50 text-orange-500 border-orange-100",
+    Médio: "bg-orange-50 text-orange-500 border-orange-100",
     Baixo: "bg-blue-50 text-blue-600 border-blue-100",
   };
 
