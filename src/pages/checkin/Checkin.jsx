@@ -4,24 +4,32 @@ import { Heart, Send } from "lucide-react";
 import { auth, db } from "../../services/firebase";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
+import img1 from "../../assets/imagens/1.png";
+import img2 from "../../assets/imagens/2.png";
+import img3 from "../../assets/imagens/3.png";
+import img4 from "../../assets/imagens/4.png";
+import img5 from "../../assets/imagens/5.png";
+import img6 from "../../assets/imagens/6.png";
+import img7 from "../../assets/imagens/7.png";
+import img8 from "../../assets/imagens/8.png";
+
 function Checkin() {
   const [emocao, setEmocao] = useState("");
   const [intensidade, setIntensidade] = useState(0);
   const [contexto, setContexto] = useState("");
   const [mensagem, setMensagem] = useState("");
+  const [carregando, setCarregando] = useState(false);
 
   const emocoes = [
-    { nome: "Muito Feliz", imagem: "src/assets/imagens/1.png" },
-    { nome: "Feliz", imagem: "src/assets/imagens/2.png" },
-    { nome: "Neutro", imagem: "src/assets/imagens/3.png" },
-    { nome: "Triste", imagem: "src/assets/imagens/4.png" },
-    { nome: "Muito Triste", imagem: "src/assets/imagens/5.png" },
-    { nome: "Ansioso", imagem: "src/assets/imagens/6.png" },
-    { nome: "Irritado", imagem: "src/assets/imagens/7.png" },
-    { nome: "Cansado", imagem: "src/assets/imagens/8.png" },
+    { nome: "Muito Feliz", imagem: img1 },
+    { nome: "Feliz", imagem: img2 },
+    { nome: "Neutro", imagem: img3 },
+    { nome: "Triste", imagem: img4 },
+    { nome: "Muito Triste", imagem: img5 },
+    { nome: "Ansioso", imagem: img6 },
+    { nome: "Irritado", imagem: img7 },
+    { nome: "Cansado", imagem: img8 },
   ];
-
-  const [carregando, setCarregando] = useState(false);
 
   async function registrarCheckin() {
     const user = auth.currentUser;
@@ -68,7 +76,7 @@ function Checkin() {
 
         <section className="bg-white rounded-[28px] border border-slate-200 shadow-sm p-8 mb-8">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-green-50 text-white-5000 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center">
               <Heart size={24} />
             </div>
 
@@ -87,10 +95,11 @@ function Checkin() {
                   setContexto("");
                   setMensagem("");
                 }}
-                className={`rounded-[24px] p-6 border transition-all duration-300 hover:shadow-md ${emocao === item.nome
+                className={`rounded-[24px] p-6 border transition-all duration-300 hover:shadow-md ${
+                  emocao === item.nome
                     ? "border-blue-200 bg-blue-50"
                     : "border-slate-100 hover:bg-slate-50"
-                  }`}
+                }`}
               >
                 <img
                   src={item.imagem}
@@ -121,10 +130,11 @@ function Checkin() {
                     setContexto("");
                     setMensagem("");
                   }}
-                  className={`py-4 rounded-2xl font-medium text-base transition-all duration-300 ${intensidade >= numero
+                  className={`py-4 rounded-2xl font-medium text-base transition-all duration-300 ${
+                    intensidade >= numero
                       ? "bg-gradient-to-r from-[#5ED6A7] to-[#38B487] text-white shadow-md"
                       : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                    }`}
+                  }`}
                 >
                   {numero}
                 </button>
