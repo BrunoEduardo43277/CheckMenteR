@@ -23,11 +23,9 @@ function IA() {
   const [mensagem, setMensagem] = useState("");
   const [historicoConversas, setHistoricoConversas] = useState([]);
   const [carregando, setCarregando] = useState(false);
-
   const [nomeAluno, setNomeAluno] = useState("");
   const [ultimoCheckin, setUltimoCheckin] = useState(null);
   const [contextoOculto, setContextoOculto] = useState([]);
-  
   const [mensagens, setMensagens] = useState([]);
 
   useEffect(() => {
@@ -36,16 +34,14 @@ function IA() {
       if (!user) return;
 
       try {
-        // 1. Buscar Nome do Aluno
         const userRef = doc(db, "usuarios", user.uid);
         const userSnap = await getDoc(userRef);
         let nome = "Aluno";
         if (userSnap.exists() && userSnap.data().nome) {
-          nome = userSnap.data().nome.split(" ")[0]; // Pegar só o primeiro nome
+          nome = userSnap.data().nome.split(" ")[0];
         }
         setNomeAluno(nome);
 
-        // 2. Buscar último check-in
         const checkinsQuery = query(
           collection(db, "checkins"),
           where("userId", "==", user.uid),
@@ -57,24 +53,22 @@ function IA() {
           setUltimoCheckin(checkinsSnap.docs[0].data());
         }
 
-        // 3. Carregar Sessão Oculta
         const sessaoRef = doc(db, "sessoesIA", user.uid);
         const sessaoSnap = await getDoc(sessaoRef);
         if (sessaoSnap.exists() && sessaoSnap.data().historico) {
           setContextoOculto(sessaoSnap.data().historico);
         }
 
-        // Inicializar a mensagem de saudação limpa na tela
         setMensagens([
           {
             autor: "ia",
-            texto: `Olá, ${nome}! Sou a Mentinha, assistente emocional do CheckMente. Como você está se sentindo hoje?`,
+            texto: `OlÃ¡, ${nome}! Sou a Mentinha, assistente emocional do CheckMente. Como vocÃª estÃ¡ se sentindo hoje?`,
           },
         ]);
       } catch (e) {
         console.error("Erro ao carregar dados iniciais:", e);
         setMensagens([
-          { autor: "ia", texto: "Olá! Sou a Mentinha. Como posso te ajudar hoje?" }
+          { autor: "ia", texto: "OlÃ¡! Sou a Mentinha. Como vocÃª estÃ¡?" }
         ]);
       }
     }
@@ -100,7 +94,6 @@ function IA() {
         id: d.id,
         ...d.data(),
       }));
-
       setHistoricoConversas(conversas);
     });
 
@@ -123,9 +116,7 @@ function IA() {
     setCarregando(true);
 
     try {
-      // Combina o contexto oculto do passado com as mensagens ativas na tela
       const historicoCompleto = [...contextoOculto, ...mensagensTela];
-
       const respostaIA = await gerarRespostaIA(historicoCompleto, nomeAluno, ultimoCheckin);
 
       const respostaDaIA = {
@@ -156,16 +147,15 @@ function IA() {
             userId: user.uid,
           });
 
-          // Gerar Alerta Preventivo Real
           if (respostaIA.riscoEmocional && respostaIA.riscoEmocional.toLowerCase() === "alto") {
             await addDoc(collection(db, "alertas"), {
               aluno: nomeAluno || "Aluno",
               iniciais: nomeAluno ? nomeAluno.substring(0, 2).toUpperCase() : "AL",
-              turma: "Não identificada", // Pode buscar a turma real se tiver no usuário
-              descricao: `A IA detectou um risco emocional ALTO. A emoção detectada foi: ${respostaIA.emocaoDetectada}. Recomendação da IA: ${respostaIA.recomendacao}`,
+              turma: "NÃ£o identificada",
+              descricao: `A IA detectou risco emocional ALTO. EmoÃ§Ã£o: ${respostaIA.emocaoDetectada}. RecomendaÃ§Ã£o: ${respostaIA.recomendacao}`,
               nivel: "Alto",
               status: "Pendente",
-              criadoEm: serverTimestamp()
+              criadoEm: serverTimestamp(),
             });
           }
         }
@@ -178,8 +168,7 @@ function IA() {
         ...old,
         {
           autor: "ia",
-          texto:
-            "Erro da Kimi: " + (error.message || "Não foi possível conectar com a IA."),
+          texto: "Erro: " + (error.message || "NÃ£o foi possÃ­vel conectar com a IA."),
         },
       ]);
     } finally {
@@ -199,9 +188,8 @@ function IA() {
             <h1 className="text-4xl font-semibold tracking-tight text-slate-800">
               IA de Acolhimento
             </h1>
-
             <p className="text-slate-500 text-base">
-              Converse com a Mentinha 
+              Converse com a Mentinha
             </p>
           </div>
         </div>
@@ -212,13 +200,14 @@ function IA() {
               {mensagens.map((msg, index) => (
                 <div
                   key={index}
-                  className={`flex ${msg.autor === "usuario" ? "justify-end" : "justify-start"
-                    }`}
+                  className={`flex ${msg.autor === "usuario" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-3xl px-6 py-4 rounded-3xl shadow-sm text-base leading-relaxed ${msg.autor === "usuario"
-                      ? "bg-gradient-to-r from-[#5ED6A7] to-[#38B487] text-white rounded-br-md" : "bg-white border border-slate-200 text-slate-800 rounded-bl-md"
-                      }`}
+                    className={`max-w-3xl px-6 py-4 rounded-3xl shadow-sm text-base leading-relaxed ${
+                      msg.autor === "usuario"
+                        ? "bg-gradient-to-r from-[#5ED6A7] to-[#38B487] text-white rounded-br-md"
+                        : "bg-white border border-slate-200 text-slate-800 rounded-bl-md"
+                    }`}
                   >
                     {msg.texto}
                   </div>
@@ -228,7 +217,7 @@ function IA() {
               {carregando && (
                 <div className="flex justify-start">
                   <div className="bg-white border border-slate-200 px-6 py-4 rounded-3xl text-slate-500 text-base">
-                    Mentinha está digitando...
+                    Mentinha estÃ¡ digitando...
                   </div>
                 </div>
               )}
@@ -241,12 +230,11 @@ function IA() {
               <div className="flex items-center gap-3">
                 <input
                   type="text"
-                  placeholder="Escreva como você se sente..."
+                  placeholder="Escreva como vocÃª se sente..."
                   value={mensagem}
                   onChange={(e) => setMensagem(e.target.value)}
                   className="flex-1 h-14 rounded-2xl border border-slate-200 bg-white px-5 text-base outline-none focus:border-blue-500"
                 />
-
                 <button
                   type="submit"
                   disabled={carregando}
@@ -261,21 +249,14 @@ function IA() {
           <aside className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm h-full">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-semibold text-slate-800">
-                  Histórico
-                </h2>
-
-                <p className="text-sm text-slate-500 mt-1">
-                  Conversas recentes
-                </p>
+                <h2 className="text-2xl font-semibold text-slate-800">HistÃ³rico</h2>
+                <p className="text-sm text-slate-500 mt-1">Conversas recentes</p>
               </div>
             </div>
 
             <div className="space-y-3 overflow-y-auto max-h-[540px] pr-1">
               {historicoConversas.length === 0 ? (
-                <p className="text-sm text-slate-500">
-                  Nenhuma conversa salva ainda.
-                </p>
+                <p className="text-sm text-slate-500">Nenhuma conversa salva ainda.</p>
               ) : (
                 historicoConversas.map((conversa, index) => (
                   <ConversaItem
@@ -298,23 +279,16 @@ function IA() {
 function ConversaItem({ titulo, resumo, horario, ativo }) {
   return (
     <button
-      className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 ${ativo
-        ? "bg-violet-50 border-violet-200"
-        : "bg-white border-slate-100 hover:bg-slate-50"
-        }`}
+      className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 ${
+        ativo ? "bg-violet-50 border-violet-200" : "bg-white border-slate-100 hover:bg-slate-50"
+      }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="font-semibold text-slate-800 text-sm">{titulo}</h3>
-
-          <p className="text-sm text-slate-500 mt-1 line-clamp-2">
-            {resumo}
-          </p>
+          <p className="text-sm text-slate-500 mt-1 line-clamp-2">{resumo}</p>
         </div>
-
-        <span className="text-xs text-slate-400 whitespace-nowrap">
-          {horario}
-        </span>
+        <span className="text-xs text-slate-400 whitespace-nowrap">{horario}</span>
       </div>
     </button>
   );
@@ -327,7 +301,6 @@ function gerarTitulo(texto) {
 
 function formatarData(dataFirebase) {
   if (!dataFirebase) return "Agora";
-
   const data = dataFirebase.toDate();
   return data.toLocaleDateString("pt-BR");
 }
