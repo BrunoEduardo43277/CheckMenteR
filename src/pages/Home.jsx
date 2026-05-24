@@ -13,6 +13,12 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 
+import img1 from "../assets/imagens/1.png";
+import img2 from "../assets/imagens/2.png";
+import img3 from "../assets/imagens/3.png";
+import img4 from "../assets/imagens/4.png";
+import img5 from "../assets/imagens/5.png";
+
 function Home() {
   return (
     <div className="min-h-screen bg-[#F8FCFA] text-slate-950">
@@ -81,11 +87,11 @@ function Home() {
               </div>
 
               <div className="grid grid-cols-5 gap-3 text-center text-4xl mb-8">
-                <img src="src/assets/imagens/1.png" className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Feliz" />
-                <img src="src/assets/imagens/2.png" className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Neutro" />
-                <img src="src/assets/imagens/3.png" className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Triste" />
-                <img src="src/assets/imagens/4.png" className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Preocupado" />
-                <img src="src/assets/imagens/5.png" className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Ansioso" />
+                <img src={img1} className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Feliz" />
+                <img src={img2} className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Neutro" />
+                <img src={img3} className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Triste" />
+                <img src={img4} className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Preocupado" />
+                <img src={img5} className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Ansioso" />
               </div>
 
               <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
@@ -173,7 +179,7 @@ function Home() {
       </section>
 
       <footer className="px-6 py-10 bg-white text-center text-slate-500">
-        Feito com <span className="text-[#38B487]">❤</span> por CheckMente © 2026
+        Feito com <span className="text-[#38B487]">♥</span> por CheckMente © 2026
       </footer>
     </div>
   );
@@ -185,7 +191,6 @@ function Card({ icon, title, text }) {
       <div className="w-16 h-16 rounded-2xl bg-[#EAFBF3] text-[#38B487] flex items-center justify-center mb-7">
         {icon}
       </div>
-
       <h3 className="text-2xl font-bold mb-3">{title}</h3>
       <p className="text-slate-500 leading-relaxed">{text}</p>
     </div>
@@ -199,10 +204,8 @@ function Step({ number, icon, title }) {
         <div className="absolute -top-4 -right-4 w-11 h-11 rounded-full bg-[#5ED6A7] text-white flex items-center justify-center font-bold">
           {number}
         </div>
-
         <div className="scale-150">{icon}</div>
       </div>
-
       <h3 className="text-2xl font-bold">{title}</h3>
     </div>
   );
