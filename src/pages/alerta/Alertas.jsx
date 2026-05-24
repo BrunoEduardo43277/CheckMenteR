@@ -1,66 +1,38 @@
-import { useState } from "react";
-import AppLayout from "../../layouts/AppLayout";
+import { useEffect, useState } from "react"
+import AppLayout from "../../layouts/AppLayout"; 
 import {
   Bell,
-  AlertTriangle,
   CheckCircle2,
   Clock,
   Search,
   Brain,
-  Eye,
   MessageCircle,
   ShieldAlert,
 } from "lucide-react";
+import { auth, db } from "../services/firebase";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 
 function Alertas() {
   const [filtro, setFiltro] = useState("Todos");
   const [busca, setBusca] = useState("");
+  const [alertas, setAlertas] = useState([]);
 
-  const alertas = [
-    {
-      aluno: "Maria Santos",
-      turma: "8º Ano B",
-      iniciais: "MS",
-      descricao: "Padrão de ausência detectado: 4 faltas nas últimas 2 semanas.",
-      emocao: "Desânimo",
-      risco: 68,
-      nivel: "Médio",
-      status: "Resolvido",
-      recomendacao:
-        "Acompanhar frequência e verificar se há dificuldade familiar, escolar ou emocional.",
-    },
-    {
-      aluno: "Ana Beatriz",
-      turma: "9º Ano A",
-      iniciais: "AB",
-      descricao:
-        "Sinais de isolamento social nos intervalos. Monitoramento preventivo recomendado.",
-      emocao: "Isolamento",
-      risco: 42,
-      nivel: "Baixo",
-      status: "Pendente",
-      recomendacao:
-        "Observar interações sociais e oferecer uma conversa acolhedora sem pressão.",
-    },
-    {
-      aluno: "Pedro Costa",
-      turma: "7º Ano A",
-      iniciais: "PC",
-      descricao:
-        "Relatos recentes indicam ansiedade elevada durante atividades avaliativas.",
-      emocao: "Ansiedade",
-      risco: 81,
-      nivel: "Alto",
-      status: "Pendente",
-      recomendacao:
-        "Encaminhar para escuta individual e acompanhar evolução nas próximas semanas.",
-    },
-  ];
+  useEffect(() => {
+    const q = query(collection(db, "alertas"), orderBy("criadoEm", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const alertasData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setAlertas(alertasData);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const filtrados = alertas.filter((item) => {
     const combinaFiltro = filtro === "Todos" || item.nivel === filtro;
     const combinaBusca = item.aluno
-      .toLowerCase()
+      ?.toLowerCase()
       .includes(busca.toLowerCase());
 
     return combinaFiltro && combinaBusca;
@@ -80,7 +52,7 @@ function Alertas() {
           </h1>
 
           <p className="text-slate-500 text-base mt-3">
-            Monitoramento inteligente de padrões emocionais.
+            Monitoramento inteligente de padrões emocionais gerados pela IA.
           </p>
         </div>
 
@@ -146,8 +118,11 @@ function Alertas() {
 
           <div className="p-6 space-y-5">
             {filtrados.map((alerta) => (
-              <AlertaCard key={alerta.aluno} alerta={alerta} />
+              <AlertaCard key={alerta.id} alerta={alerta} />
             ))}
+            {filtrados.length === 0 && (
+              <p className="text-center text-slate-500 py-6">Nenhum alerta encontrado.</p>
+            )}
           </div>
         </section>
       </div>
@@ -181,6 +156,8 @@ function ResumoCard({ icon, titulo, valor, cor }) {
 }
 
 function AlertaCard({ alerta }) {
+  const riscoEstimado = alerta.nivel === "Alto" ? 90 : alerta.nivel === "Médio" ? 60 : 30;
+
   return (
     <div className="rounded-[26px] border border-slate-100 bg-white p-6 shadow-sm hover:shadow-md transition">
       <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
@@ -205,32 +182,28 @@ function AlertaCard({ alerta }) {
             <div className="flex flex-wrap gap-2 mt-4">
               <BadgeNivel nivel={alerta.nivel} />
               <BadgeStatus status={alerta.status} />
-
-              <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-sm font-medium">
-                {alerta.emocao}
-              </span>
             </div>
           </div>
         </div>
 
         <div className="xl:w-64">
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-slate-500">Risco emocional</span>
+            <span className="text-slate-500">Risco emocional estimado</span>
             <span className="font-semibold text-slate-800">
-              {alerta.risco}%
+              {riscoEstimado}%
             </span>
           </div>
 
           <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
             <div
               className={`h-full rounded-full ${
-                alerta.risco >= 75
+                riscoEstimado >= 75
                   ? "bg-red-500"
-                  : alerta.risco >= 50
+                  : riscoEstimado >= 50
                   ? "bg-orange-400"
                   : "bg-blue-500"
               }`}
-              style={{ width: `${alerta.risco}%` }}
+              style={{ width: `${riscoEstimado}%` }}
             />
           </div>
         </div>
@@ -240,20 +213,15 @@ function AlertaCard({ alerta }) {
         <div className="bg-slate-50 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-2">
             <Brain size={18} className="text-blue-600" />
-            <p className="font-medium text-slate-800">Análise da IA</p>
+            <p className="font-medium text-slate-800">Origem do Alerta</p>
           </div>
 
           <p className="text-slate-500 text-sm leading-relaxed">
-            {alerta.recomendacao}
+            Gerado automaticamente pela IA Mentinha durante conversa de acolhimento.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <button className="px-5 py-3 rounded-2xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 flex items-center gap-2">
-            <Eye size={18} />
-            Ver análise
-          </button>
-
           <button className="px-5 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-medium shadow-md flex items-center gap-2">
             <MessageCircle size={18} />
             Abrir caso
@@ -273,9 +241,9 @@ function BadgeNivel({ nivel }) {
 
   return (
     <span
-      className={`px-3 py-1 rounded-full border text-sm font-medium ${estilos[nivel]}`}
+      className={`px-3 py-1 rounded-full border text-sm font-medium ${estilos[nivel || "Baixo"]}`}
     >
-      {nivel}
+      {nivel || "Baixo"}
     </span>
   );
 }
@@ -287,8 +255,8 @@ function BadgeStatus({ status }) {
   };
 
   return (
-    <span className={`px-3 py-1 rounded-full text-sm font-medium ${estilos[status]}`}>
-      {status}
+    <span className={`px-3 py-1 rounded-full text-sm font-medium ${estilos[status || "Pendente"]}`}>
+      {status || "Pendente"}
     </span>
   );
 }
