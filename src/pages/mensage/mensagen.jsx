@@ -1,259 +1,262 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import { Plus } from "lucide-react";
 import AppLayout from "../../layouts/AppLayout";
+import { PrimaryButton } from "../../components/ui/Button";
+import { auth, db } from "../../services/firebase";
+import ChatBox from "./ChatBox";
+import ListaAlunosModal from "./ListaAlunosModal";
+import ListaConversas from "./ListaConversas";
 import {
-  MessageCircle,
-  Check,
-  Bell,
-  AlertTriangle,
-  Calendar,
-  BookOpen,
-  Info,
-} from "lucide-react";
+  buscarPerfil,
+  buscarUsuariosDaEscola,
+  criarOuAbrirConversa,
+  nomeUsuario,
+  normalizarTipo,
+} from "./mensagensUtils";
 
 function Mensagens() {
-  const [filtro, setFiltro] = useState("Todas");
+  const [usuarioAtual, setUsuarioAtual] = useState(null);
+  const [perfil, setPerfil] = useState(null);
+  const [conversas, setConversas] = useState([]);
+  const [conversaAtiva, setConversaAtiva] = useState(null);
+  const [alunos, setAlunos] = useState([]);
+  const [modalAberto, setModalAberto] = useState(false);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState("");
 
-  const [mensagens, setMensagens] = useState([
-  {
-    id: 1,
-    titulo: "Atenção: Semana da Saúde Mental",
-    descricao:
-      "Participe das atividades especiais sobre saúde mental que acontecerão entre os dias 20 e 24 de maio.",
-    data: "22/05/2026 • 10:30",
-    categoria: "Comunicado",
-    tipo: "comunicado",
-    lida: false,
-  },
-]);
+  const tipoUsuario = normalizarTipo(perfil);
+  const isSupervisor = tipoUsuario === "supervisor";
 
-  const mensagensFiltradas = useMemo(() => {
-    if (filtro === "Todas") return mensagens;
-    if (filtro === "Não lidas") return mensagens.filter((m) => !m.lida);
-    return mensagens.filter((m) => m.lida);
-  }, [mensagens, filtro]);
+  useEffect(() => {
+    const pararAuth = onAuthStateChanged(auth, async (user) => {
+      setCarregando(true);
+      setErro("");
+      setUsuarioAtual(user);
+      setConversaAtiva(null);
 
-  const naoLidas = mensagens.filter((m) => !m.lida).length;
-  const lidas = mensagens.filter((m) => m.lida).length;
+      if (!user) {
+        setPerfil(null);
+        setConversas([]);
+        setAlunos([]);
+        setCarregando(false);
+        return;
+      }
 
-  function marcarComoLida(id) {
-    setMensagens((lista) =>
-      lista.map((msg) =>
-        msg.id === id ? { ...msg, lida: true } : msg
-      )
+      try {
+        const dadosPerfil = await buscarPerfil(user.uid, user);
+        setPerfil(dadosPerfil);
+      } catch (error) {
+        console.error(error);
+        setErro("Nao foi possivel carregar seu perfil.");
+      } finally {
+        setCarregando(false);
+      }
+    });
+
+    return () => pararAuth();
+  }, []);
+
+  useEffect(() => {
+    if (!usuarioAtual || !perfil) return undefined;
+
+    const consulta = query(
+      collection(db, "conversas"),
+      where("participantes", "array-contains", usuarioAtual.uid)
     );
-  }
 
-  function marcarTodasComoLidas() {
-    setMensagens((lista) =>
-      lista.map((msg) => ({
-        ...msg,
-        lida: true,
-      }))
+    const parar = onSnapshot(
+      consulta,
+      async (snapshot) => {
+        const lista = snapshot.docs
+          .map((documento) => ({ id: documento.id, ...documento.data() }))
+          .sort((a, b) => {
+            const dataA = a.atualizadoEm?.toMillis?.() || 0;
+            const dataB = b.atualizadoEm?.toMillis?.() || 0;
+            return dataB - dataA;
+          });
+
+        setConversas(lista);
+
+        if (normalizarTipo(perfil) === "aluno") {
+          if (lista.length > 0) {
+            setConversaAtiva((atual) => atual || lista[0]);
+            return;
+          }
+
+          const usuarios = await buscarUsuariosDaEscola(perfil.escolaId);
+          const supervisor = usuarios.find((item) => normalizarTipo(item) === "supervisor");
+
+          if (supervisor) {
+            const conversa = await criarOuAbrirConversa({
+              aluno: perfil,
+              supervisor,
+              escolaId: perfil.escolaId,
+            });
+            setConversaAtiva(conversa);
+          } else {
+            setErro("Nenhum supervisor vinculado a sua escola foi encontrado.");
+          }
+        } else if (!conversaAtiva && lista.length > 0) {
+          setConversaAtiva(lista[0]);
+        }
+      },
+      (error) => {
+        console.error(error);
+        setErro("Nao foi possivel carregar as conversas.");
+      }
     );
+
+    return () => parar();
+  }, [usuarioAtual, perfil, conversaAtiva]);
+
+  useEffect(() => {
+    if (!perfil || !isSupervisor || !modalAberto) return undefined;
+
+    let cancelado = false;
+
+    async function carregarAlunos() {
+      try {
+        const usuarios = await buscarUsuariosDaEscola(perfil.escolaId);
+        const somenteAlunos = usuarios
+          .filter((usuario) => normalizarTipo(usuario) === "aluno")
+          .sort((a, b) => nomeUsuario(a).localeCompare(nomeUsuario(b)));
+
+        if (!cancelado) setAlunos(somenteAlunos);
+      } catch (error) {
+        console.error(error);
+        if (!cancelado) setErro("Nao foi possivel carregar a lista de alunos.");
+      }
+    }
+
+    carregarAlunos();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [perfil, isSupervisor, modalAberto]);
+
+  async function selecionarAluno(aluno) {
+    if (!perfil) return;
+
+    try {
+      const conversa = await criarOuAbrirConversa({
+        aluno,
+        supervisor: perfil,
+        escolaId: perfil.escolaId || aluno.escolaId,
+      });
+
+      setConversaAtiva(conversa);
+      setModalAberto(false);
+    } catch (error) {
+      console.error(error);
+      setErro("Nao foi possivel abrir a conversa com este aluno.");
+    }
   }
 
   return (
     <AppLayout>
-      <div className="max-w-6xl mx-auto px-2">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 mb-8">
-          <div>
-            <h1 className="text-4xl font-semibold tracking-tight text-slate-800">
-              Mensagens
-            </h1>
-
-            <p className="text-slate-500 text-base mt-3">
-              Avisos e comunicados importantes para você.
-            </p>
-          </div>
-
-          <button
-            onClick={marcarTodasComoLidas}
-            className="px-5 py-3 rounded-2xl bg-white border border-slate-200 text-slate-600 font-medium flex items-center gap-2 shadow-sm hover:bg-slate-50 transition"
-          >
-            <Check size={18} />
-            Marcar todas como lidas
-          </button>
-        </div>
-
-        <div className="bg-white rounded-[28px] border border-slate-200 shadow-sm overflow-hidden">
-          <div className="border-b border-slate-100 px-6 pt-6">
-            <div className="flex flex-wrap gap-3">
-              <FiltroButton
-                ativo={filtro === "Todas"}
-                onClick={() => setFiltro("Todas")}
-                texto="Todas"
-                count={mensagens.length}
-              />
-
-              <FiltroButton
-                ativo={filtro === "Não lidas"}
-                onClick={() => setFiltro("Não lidas")}
-                texto="Não lidas"
-                count={naoLidas}
-              />
-
-              <FiltroButton
-                ativo={filtro === "Lidas"}
-                onClick={() => setFiltro("Lidas")}
-                texto="Lidas"
-                count={lidas}
-              />
-            </div>
-          </div>
-
-          <div className="p-6 space-y-4">
-            {mensagensFiltradas.map((msg) => (
-              <MensagemCard
-                key={msg.id}
-                mensagem={msg}
-                onLer={() => marcarComoLida(msg.id)}
-              />
-            ))}
-
-            {mensagensFiltradas.length === 0 && (
-              <div className="py-16 text-center">
-                <div className="w-16 h-16 rounded-3xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4">
-                  <MessageCircle size={28} />
-                </div>
-
-                <h2 className="text-xl font-semibold text-slate-800">
-                  Nenhuma mensagem encontrada
-                </h2>
-
-                <p className="text-slate-500 text-base mt-2">
-                  Não há mensagens neste filtro no momento.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <p className="text-center text-slate-500 text-sm mt-6 flex items-center justify-center gap-2">
-          <Info size={16} />
-          Mensagens lidas ficam armazenadas por 30 dias.
-        </p>
-      </div>
+      <MensagensPage
+        usuarioAtual={usuarioAtual}
+        perfil={perfil}
+        conversas={conversas}
+        conversaAtiva={conversaAtiva}
+        alunos={alunos}
+        isSupervisor={isSupervisor}
+        modalAberto={modalAberto}
+        carregando={carregando}
+        erro={erro}
+        onSelecionarConversa={setConversaAtiva}
+        onAbrirModal={() => setModalAberto(true)}
+        onFecharModal={() => setModalAberto(false)}
+        onSelecionarAluno={selecionarAluno}
+      />
     </AppLayout>
   );
 }
 
-function FiltroButton({ ativo, onClick, texto, count }) {
+function MensagensPage({
+  usuarioAtual,
+  perfil,
+  conversas,
+  conversaAtiva,
+  alunos,
+  isSupervisor,
+  modalAberto,
+  carregando,
+  erro,
+  onSelecionarConversa,
+  onAbrirModal,
+  onFecharModal,
+  onSelecionarAluno,
+}) {
   return (
-    <button
-      onClick={onClick}
-      className={`px-5 py-4 border-b-2 font-medium text-sm transition ${
-        ativo
-          ? "border-blue-600 text-blue-600"
-          : "border-transparent text-slate-500 hover:text-slate-800"
-      }`}
-    >
-      {texto}
-
-      <span
-        className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-          ativo
-            ? "bg-blue-100 text-blue-600"
-            : "bg-slate-100 text-slate-500"
-        }`}
-      >
-        {count}
-      </span>
-    </button>
-  );
-}
-
-function MensagemCard({ mensagem, onLer }) {
-  const config = {
-    comunicado: {
-      icon: <Bell size={28} />,
-      bg: "bg-orange-50",
-      text: "text-orange-500",
-      badge: "bg-orange-50 text-orange-500 border-orange-100",
-    },
-    aviso: {
-      icon: <AlertTriangle size={28} />,
-      bg: "bg-red-50",
-      text: "text-red-500",
-      badge: "bg-red-50 text-red-500 border-red-100",
-    },
-    academico: {
-      icon: <Calendar size={28} />,
-      bg: "bg-green-50",
-      text: "text-green-600",
-      badge: "bg-green-50 text-green-600 border-green-100",
-    },
-    atividade: {
-      icon: <BookOpen size={28} />,
-      bg: "bg-violet-50",
-      text: "text-violet-600",
-      badge: "bg-violet-50 text-violet-600 border-violet-100",
-    },
-  };
-
-  const style = config[mensagem.tipo];
-
-  return (
-    <div
-      className={`rounded-[24px] border p-6 transition ${
-        mensagem.lida
-          ? "border-slate-100 bg-white"
-          : "border-blue-100 bg-blue-50/40"
-      }`}
-    >
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-        <div className="flex gap-5">
-          <div
-            className={`w-16 h-16 rounded-3xl ${style.bg} ${style.text} flex items-center justify-center shrink-0`}
-          >
-            {style.icon}
-          </div>
-
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-lg font-semibold text-slate-800">
-                {mensagem.titulo}
-              </h2>
-
-              {!mensagem.lida && (
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
-              )}
-            </div>
-
-            <p className="text-slate-500 text-base mt-2 max-w-4xl">
-              {mensagem.descricao}
-            </p>
-
-            <span
-              className={`inline-flex mt-4 px-3 py-1 rounded-full border text-sm font-medium ${style.badge}`}
-            >
-              {mensagem.categoria}
-            </span>
-          </div>
+    <div className="mx-auto max-w-7xl px-2">
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-4xl font-semibold tracking-tight text-slate-800">
+            Mensagens
+          </h1>
+          <p className="mt-2 text-base text-slate-500">
+            Conversas privadas entre aluno e supervisao escolar.
+          </p>
         </div>
 
-        <div className="flex flex-col lg:items-end gap-4">
-          <p className="text-slate-500 text-sm whitespace-nowrap">
-            {mensagem.data}
-          </p>
+        {isSupervisor && <BotaoNovaConversa onClick={onAbrirModal} />}
+      </div>
 
-          {mensagem.lida ? (
-            <div className="flex items-center gap-2 text-green-600 font-medium">
-              <Check size={18} />
-              Lida
-            </div>
-          ) : (
-            <button
-              onClick={onLer}
-              className="px-5 py-3 rounded-2xl border border-blue-200 text-blue-600 font-medium hover:bg-blue-50 transition flex items-center gap-2"
-            >
-              <Check size={18} />
-              Marcar como lida
-            </button>
-          )}
+      {erro && (
+        <div className="mb-5 rounded-2xl border border-amber-100 bg-amber-50 px-5 py-4 text-sm font-medium text-amber-700">
+          {erro}
+        </div>
+      )}
+
+      <div className="grid min-h-[72vh] overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm lg:grid-cols-[360px_1fr]">
+        {isSupervisor && (
+          <ListaConversas
+            conversas={conversas}
+            conversaAtiva={conversaAtiva}
+            usuarioAtual={usuarioAtual}
+            carregando={carregando}
+            onSelecionarConversa={onSelecionarConversa}
+          />
+        )}
+
+        <div className={isSupervisor ? "min-w-0" : "lg:col-span-2"}>
+          <ChatBox
+            usuarioAtual={usuarioAtual}
+            perfil={perfil}
+            conversa={conversaAtiva}
+            isSupervisor={isSupervisor}
+            carregando={carregando}
+          />
         </div>
       </div>
+
+      {modalAberto && (
+        <ListaAlunosModal
+          alunos={alunos}
+          conversas={conversas}
+          onFechar={onFecharModal}
+          onSelecionarAluno={onSelecionarAluno}
+        />
+      )}
     </div>
   );
 }
 
+function BotaoNovaConversa({ onClick }) {
+  return (
+    <PrimaryButton onClick={onClick}>
+      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20">
+        <Plus size={20} />
+      </span>
+      Nova conversa
+    </PrimaryButton>
+  );
+}
+
 export default Mensagens;
+
+

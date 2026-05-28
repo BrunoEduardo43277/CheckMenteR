@@ -1,6 +1,16 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Brain, Mail, Lock, User, ShieldCheck, Heart, BarChart3 } from "lucide-react";
+import {
+  Brain,
+  Mail,
+  Lock,
+  User,
+  ShieldCheck,
+  Heart,
+  BarChart3,
+  GraduationCap,
+  Building2,
+} from "lucide-react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "../../services/firebase";
@@ -11,6 +21,7 @@ function Cadastro() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [tipoConta, setTipoConta] = useState("aluno");
   const [carregando, setCarregando] = useState(false);
 
   async function handleCadastro(e) {
@@ -40,7 +51,8 @@ function Cadastro() {
       await setDoc(doc(db, "usuarios", user.uid), {
         nome,
         email,
-        funcao: "Administrador",
+        role: tipoConta,
+        funcao: tipoConta === "escola" ? "Escola" : "Aluno",
         telefone: "",
         instituicao: "",
         bio: "",
@@ -58,11 +70,8 @@ function Cadastro() {
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-gradient-to-br from-[#F3FFFA] via-white to-[#E8F8F0]">
-
       <div className="hidden lg:flex items-center justify-center bg-gradient-to-br from-[#5ED6A7] via-[#4CC38A] to-[#38B487] text-white px-16">
-
         <div className="max-w-xl">
-
           <div className="w-20 h-20 rounded-3xl bg-white/15 backdrop-blur flex items-center justify-center mb-8">
             <Brain size={42} />
           </div>
@@ -81,17 +90,12 @@ function Cadastro() {
             <Info icon={<BarChart3 />} text="Relatórios para decisões preventivas" />
             <Info icon={<ShieldCheck />} text="Perfil seguro salvo no Firebase" />
           </div>
-
         </div>
-
       </div>
 
       <div className="flex items-center justify-center px-6 py-12">
-
         <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#E6F3EC] p-8 md:p-10">
-
           <div className="flex flex-col items-center mb-8">
-
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#5ED6A7] to-[#38B487] flex items-center justify-center text-white mb-4">
               <Brain size={32} />
             </div>
@@ -103,41 +107,75 @@ function Cadastro() {
             <p className="text-slate-500 mt-2">
               Crie sua conta gratuita
             </p>
-
           </div>
 
           <form onSubmit={handleCadastro} className="space-y-5">
+            <div>
+              <label className="block mb-2 font-medium text-slate-700">
+                Tipo de conta
+              </label>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setTipoConta("aluno")}
+                  className={`rounded-xl border px-4 py-4 flex items-center justify-center gap-2 font-semibold transition ${
+                    tipoConta === "aluno"
+                      ? "border-[#38B487] bg-[#E5F7EE] text-[#2FA36B]"
+                      : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                  }`}
+                >
+                  <GraduationCap size={20} />
+                  Aluno
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTipoConta("escola")}
+                  className={`rounded-xl border px-4 py-4 flex items-center justify-center gap-2 font-semibold transition ${
+                    tipoConta === "escola"
+                      ? "border-[#38B487] bg-[#E5F7EE] text-[#2FA36B]"
+                      : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                  }`}
+                >
+                  <Building2 size={20} />
+                  Escola
+                </button>
+              </div>
+            </div>
 
             <div>
-
               <label className="block mb-2 font-medium text-slate-700">
-                Nome completo
+                {tipoConta === "escola" ? "Nome da escola" : "Nome completo"}
               </label>
 
               <div className="flex items-center border border-slate-200 rounded-xl px-4 py-4 bg-white focus-within:border-[#38B487]">
-
-                <User size={20} className="text-slate-400 mr-3" />
+                {tipoConta === "escola" ? (
+                  <Building2 size={20} className="text-slate-400 mr-3" />
+                ) : (
+                  <User size={20} className="text-slate-400 mr-3" />
+                )}
 
                 <input
                   type="text"
-                  placeholder="Digite seu nome"
+                  placeholder={
+                    tipoConta === "escola"
+                      ? "Digite o nome da escola"
+                      : "Digite seu nome"
+                  }
                   className="w-full outline-none"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                 />
-
               </div>
-
             </div>
 
             <div>
-
               <label className="block mb-2 font-medium text-slate-700">
                 E-mail
               </label>
 
               <div className="flex items-center border border-slate-200 rounded-xl px-4 py-4 bg-white focus-within:border-[#38B487]">
-
                 <Mail size={20} className="text-slate-400 mr-3" />
 
                 <input
@@ -147,19 +185,15 @@ function Cadastro() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
-
               </div>
-
             </div>
 
             <div>
-
               <label className="block mb-2 font-medium text-slate-700">
                 Senha
               </label>
 
               <div className="flex items-center border border-slate-200 rounded-xl px-4 py-4 bg-white focus-within:border-[#38B487]">
-
                 <Lock size={20} className="text-slate-400 mr-3" />
 
                 <input
@@ -169,18 +203,19 @@ function Cadastro() {
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
                 />
-
               </div>
-
             </div>
 
             <button
               disabled={carregando}
               className="w-full py-4 rounded-xl bg-gradient-to-r from-[#5ED6A7] to-[#38B487] text-white font-bold shadow-lg disabled:opacity-60"
             >
-              {carregando ? "Criando conta..." : "Criar conta"}
+              {carregando
+                ? "Criando conta..."
+                : tipoConta === "escola"
+                ? "Criar conta da escola"
+                : "Criar conta de aluno"}
             </button>
-
           </form>
 
           <p className="text-center text-slate-500 mt-8">
@@ -189,21 +224,15 @@ function Cadastro() {
             <Link to="/login" className="text-[#38B487] font-bold">
               Entrar
             </Link>
-
           </p>
 
           <p className="text-center mt-4">
-
             <Link to="/" className="text-slate-500 text-sm">
               Voltar para início
             </Link>
-
           </p>
-
         </div>
-
       </div>
-
     </div>
   );
 }

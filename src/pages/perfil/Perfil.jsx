@@ -139,7 +139,7 @@ function Perfil() {
           {!editando && (
             <button
               onClick={() => setEditando(true)}
-              className="px-5 py-3 rounded-2xl bg-white border border-slate-200 text-blue-600 font-medium flex items-center gap-2 shadow-sm hover:bg-blue-50 transition"
+              className="px-5 py-3 rounded-2xl bg-white border border-slate-200 text-[#27C4BD] font-medium flex items-center gap-2 shadow-sm hover:bg-[#F3FFFA] transition"
             >
               <Pencil size={18} />
               Editar perfil
@@ -148,15 +148,15 @@ function Perfil() {
         </div>
 
         <section className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden mb-8">
-          <div className="relative h-40 overflow-hidden bg-gradient-to-r from-blue-50 via-violet-50 to-blue-100">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(37,99,235,0.18),transparent_30%),radial-gradient(circle_at_80%_10%,rgba(124,58,237,0.18),transparent_30%)]" />
+          <div className="relative h-40 overflow-hidden bg-gradient-to-r from-[#E5F7EE] via-[#F3FFFA] to-[#DDF7F3]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(39,196,189,0.18),transparent_30%),radial-gradient(circle_at_80%_10%,rgba(56,180,135,0.18),transparent_30%)]" />
           </div>
 
           <div className="relative z-10 px-7 md:px-9 pb-8">
             <div className="relative z-20 flex flex-col md:flex-row md:items-end md:justify-between gap-6 -mt-16">
               <div className="flex flex-col md:flex-row md:items-end gap-6">
                 <div className="relative w-fit">
-                  <div className="w-32 h-32 rounded-[34px] bg-gradient-to-br from-blue-600 to-violet-600 text-white flex items-center justify-center text-4xl font-semibold shadow-xl border-4 border-white">
+                  <div className="w-32 h-32 rounded-[34px] bg-gradient-to-br from-[#27C4BD] to-[#38B487] text-white flex items-center justify-center text-4xl font-semibold shadow-xl border-4 border-white">
                     {dados.nome ? dados.nome.slice(0, 2).toUpperCase() : "CM"}
                   </div>
 
@@ -174,7 +174,7 @@ function Perfil() {
                       {dados.nome || "Usuário CheckMente"}
                     </h2>
 
-                    <span className="px-3 py-1 rounded-full bg-green-50 text-green-600 text-sm font-medium flex items-center gap-1">
+                    <span className="px-3 py-1 rounded-full bg-[#E5F7EE] text-[#38B487] text-sm font-medium flex items-center gap-1">
                       <CheckCircle2 size={15} />
                       Ativo
                     </span>
@@ -223,8 +223,8 @@ function Perfil() {
               Segurança da conta
             </h2>
 
-            <div className="flex items-center gap-4 bg-green-50 rounded-3xl p-5">
-              <div className="w-14 h-14 rounded-2xl bg-white text-green-600 flex items-center justify-center shadow-sm">
+            <div className="flex items-center gap-4 bg-[#E5F7EE] rounded-3xl p-5">
+              <div className="w-14 h-14 rounded-2xl bg-white text-[#38B487] flex items-center justify-center shadow-sm">
                 <Shield size={26} />
               </div>
 
@@ -283,7 +283,7 @@ function Perfil() {
                   value={dados.bio}
                   onChange={(e) => atualizarCampo("bio", e.target.value)}
                   placeholder="Escreva uma breve descrição sobre você..."
-                  className="w-full min-h-32 rounded-2xl border border-slate-200 px-5 py-4 outline-none focus:border-blue-500 resize-none text-base"
+                  className="w-full min-h-32 rounded-2xl border border-slate-200 px-5 py-4 outline-none focus:border-[#27C4BD] resize-none text-base"
                 />
               </div>
 
@@ -306,7 +306,9 @@ function Info({ icon, title, value, green }) {
     <div className="flex items-start gap-3">
       <div
         className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
-          green ? "bg-green-50 text-green-600" : "bg-blue-50 text-blue-600"
+          green
+            ? "bg-[#E5F7EE] text-[#38B487]"
+            : "bg-[#E5F7EE] text-[#27C4BD]"
         }`}
       >
         {icon}
@@ -315,7 +317,7 @@ function Info({ icon, title, value, green }) {
       <div>
         <p className="text-slate-500 text-sm">{title}</p>
 
-        <p className={`font-medium ${green ? "text-green-600" : "text-slate-800"}`}>
+        <p className={`font-medium ${green ? "text-[#38B487]" : "text-slate-800"}`}>
           {value}
         </p>
       </div>
@@ -333,7 +335,7 @@ function Campo({ label, value, onChange }) {
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full h-14 rounded-2xl border border-slate-200 px-5 outline-none focus:border-blue-500 text-base"
+        className="w-full h-14 rounded-2xl border border-slate-200 px-5 outline-none focus:border-[#27C4BD] text-base"
       />
     </div>
   );
