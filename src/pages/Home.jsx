@@ -11,6 +11,12 @@ import {
   Users,
   Trophy,
 } from "lucide-react";
+import imagem from "../assets/imagens/1.png";
+import imagem2 from "../assets/imagens/2.png";
+import imagem3 from "../assets/imagens/3.png";
+import imagem4 from "../assets/imagens/4.png";
+import imagem5 from "../assets/imagens/5.png";
+
 import Navbar from "../components/Navbar";
 
 import img1 from "../assets/imagens/1.png";
@@ -92,6 +98,11 @@ function Home() {
                 <img src={img3} className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Triste" />
                 <img src={img4} className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Preocupado" />
                 <img src={img5} className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Ansioso" />
+                <img src={imagem} className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Feliz" />
+                <img src={imagem2} className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Neutro" />
+                <img src={imagem3} className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Triste" />
+                <img src={imagem4} className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Preocupado" />
+                <img src={imagem5} className="bg-[#EAFBF3] p-4 rounded-2xl" alt="Ansioso" />
               </div>
 
               <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
