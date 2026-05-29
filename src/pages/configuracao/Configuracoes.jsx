@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import AppLayout from "../../layouts/AppLayout";
 import { sendPasswordResetEmail } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import {
   Settings,
   Bell,
@@ -90,7 +91,7 @@ function Configuracoes() {
     <AppLayout>
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center gap-5 mb-10">
-          <div className="w-16 h-16 rounded-3xl bg-blue-50 text-green-600 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-3xl bg-[#E5F7EE] text-[#38B487] flex items-center justify-center">
             <Settings size={34} />
           </div>
 
@@ -111,7 +112,7 @@ function Configuracoes() {
             <input
               value={instituicao}
               onChange={(e) => setInstituicao(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200 px-5 py-4 outline-none focus:border-blue-600"
+              className="w-full rounded-2xl border border-[#E8F3ED] px-5 py-4 outline-none focus:border-[#38B487]"
             />
           </Card>
 
@@ -144,7 +145,7 @@ function Configuracoes() {
             <div className="space-y-4">
               <button
                 type="button"
-                className="w-full py-4 rounded-2xl border border-slate-200 font-bold hover:bg-slate-50"
+                className="w-full py-4 rounded-2xl border border-[#E8F3ED] font-bold hover:bg-[#F5FBF8]"
               >
                 
                 Excluir conta
@@ -155,7 +156,7 @@ function Configuracoes() {
           <div className="lg:col-span-2 flex justify-end">
             <button
               disabled={salvando}
-              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#5ED6A7] to-[#38B487] text-white font-bold flex items-center gap-3 shadow-lg disabled:opacity-60"
+              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#38B487] to-[#27C4BD] text-white font-bold flex items-center gap-3 shadow-lg disabled:opacity-60"
             >
               <Save size={20} />
               {salvando ? "Salvando..." : "Salvar Configurações"}
@@ -169,9 +170,9 @@ function Configuracoes() {
 
 function Card({ icon, title, children }) {
   return (
-    <section className="bg-white rounded-3xl border border-slate-200 shadow-sm p-7">
+    <section className="bg-white rounded-3xl border border-[#E8F3ED] shadow-sm p-7">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+        <div className="w-12 h-12 rounded-2xl bg-[#EAFBF3] text-[#38B487] flex items-center justify-center">
           {icon}
         </div>
 
@@ -195,7 +196,7 @@ function Toggle({ title, description, ativo, onClick }) {
         type="button"
         onClick={onClick}
         className={`w-14 h-8 rounded-full p-1 transition ${
-          ativo ? "bg-blue-600" : "bg-slate-300"
+          ativo ? "bg-[#38B487]" : "bg-slate-300"
         }`}
       >
         <div
